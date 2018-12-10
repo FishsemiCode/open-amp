@@ -35,6 +35,9 @@ extern "C" {
 	} while (0)
 #endif
 
+#define RPMSG_BUF_HELD (1U << 31) /* Flag to suggest to hold the buffer */
+
+#define RPMSG_LOCATE_HDR(p) (struct rpmsg_hdr *)((char *)(p) - sizeof(struct rpmsg_hdr))
 #define RPMSG_LOCATE_DATA(p) ((unsigned char *)(p) + sizeof(struct rpmsg_hdr))
 /**
  * enum rpmsg_ns_flags - dynamic name service announcement flags
