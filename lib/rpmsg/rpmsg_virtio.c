@@ -146,8 +146,8 @@ static void *rpmsg_virtio_get_tx_buffer(struct rpmsg_virtio_device *rvdev,
 		data = virtqueue_get_buffer(rvdev->svq, len, idx);
 		if (data == NULL) {
 			data = rpmsg_virtio_shm_pool_get_buffer(rvdev->shpool,
-							RPMSG_BUFFER_SIZE);
-			*len = RPMSG_BUFFER_SIZE;
+							rvdev->shbuf_size);
+			*len = rvdev->shbuf_size;
 		}
 	}
 #endif /*!VIRTIO_SLAVE_ONLY*/
@@ -217,7 +217,7 @@ static int _rpmsg_virtio_get_buffer_size(struct rpmsg_virtio_device *rvdev)
 		 * If device role is Remote then buffers are provided by us
 		 * (RPMSG Master), so just provide the macro.
 		 */
-		length = RPMSG_BUFFER_SIZE - sizeof(struct rpmsg_hdr);
+		length = rvdev->shbuf_size - sizeof(struct rpmsg_hdr);
 	}
 #endif /*!VIRTIO_SLAVE_ONLY*/
 
@@ -506,6 +506,17 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 	rdev->ns_bind_cb = ns_bind_cb;
 	vdev->priv = rvdev;
 	rdev->ops.send_offchannel_raw = rpmsg_virtio_send_offchannel_raw;
+
+	if (vdev->features & (1 << VIRTIO_RPMSG_F_BUFSZ)) {
+		uint32_t size = 0;
+
+		rpmsg_virtio_read_config(rvdev, 0, &size, sizeof(size));
+		rvdev->shbuf_size = size;
+	}
+
+	if (rvdev->shbuf_size == 0)
+		rvdev->shbuf_size = RPMSG_BUFFER_SIZE;
+
 	role = rpmsg_virtio_get_role(rvdev);
 
 #ifndef VIRTIO_SLAVE_ONLY
@@ -568,11 +579,11 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 		unsigned int idx;
 		void *buffer;
 
-		vqbuf.len = RPMSG_BUFFER_SIZE;
+		vqbuf.len = rvdev->shbuf_size;
 		for (idx = 0; idx < rvdev->rvq->vq_nentries; idx++) {
 			/* Initialize TX virtqueue buffers for remote device */
 			buffer = rpmsg_virtio_shm_pool_get_buffer(shpool,
-							RPMSG_BUFFER_SIZE);
+							rvdev->shbuf_size);
 
 			if (!buffer) {
 				return RPMSG_ERR_NO_BUFF;
@@ -583,7 +594,7 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 			metal_io_block_set(shm_io,
 					   metal_io_virt_to_offset(shm_io,
 								   buffer),
-					   0x00, RPMSG_BUFFER_SIZE);
+					   0x00, rvdev->shbuf_size);
 			status =
 				virtqueue_add_buffer(rvdev->rvq, &vqbuf, 0, 1,
 						     buffer);

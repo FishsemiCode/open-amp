@@ -27,7 +27,8 @@ extern "C" {
 #endif
 
 /* The feature bitmap for virtio rpmsg */
-#define VIRTIO_RPMSG_F_NS 0 /* RP supports name service notifications */
+#define VIRTIO_RPMSG_F_NS	0 /* RP supports name service notifications */
+#define VIRTIO_RPMSG_F_BUFSZ	2 /* RP supports get buffer size from config space */
 
 struct rpmsg_virtio_shm_pool;
 /**
@@ -52,6 +53,7 @@ struct rpmsg_virtio_shm_pool {
  * @shbuf_io: pointer to the shared buffer I/O region
  * @shpool: pointer to the shared buffers pool
  * @endpoints: list of endpoints.
+ * @shbuf_size: size of each rpmsg buffer
  */
 struct rpmsg_virtio_device {
 	struct rpmsg_device rdev;
@@ -60,6 +62,7 @@ struct rpmsg_virtio_device {
 	struct virtqueue *svq;
 	struct metal_io_region *shbuf_io;
 	struct rpmsg_virtio_shm_pool *shpool;
+	size_t shbuf_size;
 };
 
 #define RPMSG_REMOTE	VIRTIO_DEV_SLAVE
@@ -79,6 +82,13 @@ static inline void rpmsg_virtio_set_status(struct rpmsg_virtio_device *rvdev,
 static inline uint8_t rpmsg_virtio_get_status(struct rpmsg_virtio_device *rvdev)
 {
 	return rvdev->vdev->func->get_status(rvdev->vdev);
+}
+
+static inline void
+rpmsg_virtio_read_config(struct rpmsg_virtio_device *rvdev,
+			 uint32_t offset, void *dst, int length)
+{
+	rvdev->vdev->func->read_config(rvdev->vdev, offset, dst, length);
 }
 
 static inline int
