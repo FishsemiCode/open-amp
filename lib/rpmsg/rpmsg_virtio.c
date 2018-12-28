@@ -319,7 +319,7 @@ static int rpmsg_virtio_send_offchannel_nocopy(struct rpmsg_device *rdev,
 	/* Initialize RPMSG header. */
 	rp_hdr.dst = dst;
 	rp_hdr.src = src;
-	rp_hdr.len = len;
+	rp_hdr.len = C2B(len);
 	rp_hdr.reserved = 0;
 	rp_hdr.flags = 0;
 
@@ -439,7 +439,7 @@ static void rpmsg_virtio_rx_callback(struct virtqueue *vq)
 				ept->dest_addr = rp_hdr->src;
 			}
 			status = ept->cb(ept, RPMSG_LOCATE_DATA(rp_hdr),
-					 rp_hdr->len, rp_hdr->src, ept->priv);
+					 B2C(rp_hdr->len), rp_hdr->src, ept->priv);
 
 			RPMSG_ASSERT(status == RPMSG_SUCCESS,
 				     "unexpected callback status\n");
@@ -490,6 +490,7 @@ static int rpmsg_virtio_ns_callback(struct rpmsg_endpoint *ept, void *data,
 	struct rpmsg_ns_msg *ns_msg;
 	uint32_t dest;
 	char name[RPMSG_NAME_SIZE];
+	char temp[B2C(RPMSG_NAME_SIZE)];
 
 	(void)priv;
 	(void)src;
@@ -500,7 +501,8 @@ static int rpmsg_virtio_ns_callback(struct rpmsg_endpoint *ept, void *data,
 		return RPMSG_SUCCESS;
 	metal_io_block_read(io,
 			    metal_io_virt_to_offset(io, ns_msg->name),
-			    &name, sizeof(name));
+			    &temp, sizeof(temp));
+	nbstr2cstr(name, temp, RPMSG_NAME_SIZE);
 	dest = ns_msg->addr;
 
 	/* check if a Ept has been locally registered */
@@ -575,7 +577,7 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 		uint32_t size = 0;
 
 		rpmsg_virtio_read_config(rvdev, 0, &size, sizeof(size));
-		rvdev->shbuf_size = size;
+		rvdev->shbuf_size = B2C(size);
 	}
 
 	if (rvdev->shbuf_size == 0)

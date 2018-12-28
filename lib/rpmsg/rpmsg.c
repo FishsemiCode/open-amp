@@ -134,7 +134,7 @@ int rpmsg_send_ns_message(struct rpmsg_endpoint *ept, unsigned long flags)
 
 	ns_msg.flags = flags;
 	ns_msg.addr = ept->addr;
-	strncpy(ns_msg.name, ept->name, sizeof(ns_msg.name));
+	ncstr2bstr(ns_msg.name, ept->name, RPMSG_NAME_SIZE);
 	ret = rpmsg_send_offchannel_raw(ept, ept->addr,
 					RPMSG_NS_EPT_ADDR,
 					&ns_msg, sizeof(ns_msg), true);

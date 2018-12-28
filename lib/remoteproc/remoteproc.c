@@ -923,7 +923,7 @@ remoteproc_create_virtio(struct remoteproc *rproc,
 		notifyid = vring_rsc->notifyid;
 		da = vring_rsc->da;
 		num_descs = vring_rsc->num;
-		align = vring_rsc->align;
+		align = B2C(vring_rsc->align);
 		size = vring_size(num_descs, align);
 		va = remoteproc_mmap(rproc, NULL, &da, size, 0, &io);
 		if (!va)

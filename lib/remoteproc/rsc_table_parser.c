@@ -58,7 +58,7 @@ int handle_rsc_table(struct remoteproc *rproc,
 	/* Loop through the offset array and parse each resource entry */
 	for (idx = 0; idx < rsc_table->num; idx++) {
 		rsc_start = (char *)rsc_table;
-		rsc_start += rsc_table->offset[idx];
+		rsc_start += B2C(rsc_table->offset[idx]);
 		if (io &&
 		    metal_io_virt_to_offset(io, rsc_start) == METAL_BAD_OFFSET)
 			return -RPROC_ERR_RSC_TAB_TRUNC;
@@ -109,7 +109,7 @@ int handle_carve_out_rsc(struct remoteproc *rproc, void *rsc)
 	}
 	pa = carve_rsc->pa;
 	da = carve_rsc->da;
-	size = carve_rsc->len;
+	size = B2C(carve_rsc->len);
 	attribute = carve_rsc->flags;
 	if (remoteproc_mmap(rproc, &pa, &da, size, attribute, NULL))
 		return 0;
@@ -121,7 +121,7 @@ int handle_vendor_rsc(struct remoteproc *rproc, void *rsc)
 {
 	if (rproc && rproc->ops->handle_rsc) {
 		struct fw_rsc_vendor *vend_rsc = rsc;
-		size_t len = vend_rsc->len;
+		size_t len = B2C(vend_rsc->len);
 
 		return rproc->ops->handle_rsc(rproc, rsc, len);
 	}
@@ -210,11 +210,11 @@ size_t find_rsc(void *rsc_table, unsigned int rsc_type, unsigned int index)
 	rsc_index = 0;
 	for (i = 0; i < r_table->num; i++) {
 		rsc_start = (char *)r_table;
-		rsc_start += r_table->offset[i];
+		rsc_start += B2C(r_table->offset[i]);
 		lrsc_type = *((uint32_t *)rsc_start);
 		if (lrsc_type == rsc_type) {
 			if (rsc_index++ == index)
-				return r_table->offset[i];
+				return B2C(r_table->offset[i]);
 		}
 	}
 	return 0;

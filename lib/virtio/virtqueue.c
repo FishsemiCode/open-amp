@@ -182,7 +182,7 @@ void *virtqueue_get_buffer(struct virtqueue *vq, uint32_t *len, uint16_t *idx)
 
 	desc_idx = uep->id;
 	if (len)
-		*len = uep->len;
+		*len = B2C(uep->len);
 
 	vq_ring_free_chain(vq, desc_idx);
 
@@ -198,7 +198,7 @@ void *virtqueue_get_buffer(struct virtqueue *vq, uint32_t *len, uint16_t *idx)
 
 uint32_t virtqueue_get_buffer_length(struct virtqueue *vq, uint16_t idx)
 {
-	return vq->vq_ring.desc[idx].len;
+	return B2C(vq->vq_ring.desc[idx].len);
 }
 
 /**
@@ -247,7 +247,7 @@ void *virtqueue_get_available_buffer(struct virtqueue *vq, uint16_t *avail_idx,
 	*avail_idx = vq->vq_ring.avail->ring[head_idx];
 
 	buffer = virtqueue_phys_to_virt(vq, vq->vq_ring.desc[*avail_idx].addr);
-	*len = vq->vq_ring.desc[*avail_idx].len;
+	*len = B2C(vq->vq_ring.desc[*avail_idx].len);
 
 	VQUEUE_IDLE(vq);
 
@@ -278,7 +278,7 @@ int virtqueue_add_consumed_buffer(struct virtqueue *vq, uint16_t head_idx,
 	used_idx = vq->vq_ring.used->idx & (vq->vq_nentries - 1);
 	used_desc = &vq->vq_ring.used->ring[used_idx];
 	used_desc->id = head_idx;
-	used_desc->len = len;
+	used_desc->len = C2B(len);
 
 	atomic_thread_fence(memory_order_seq_cst);
 
@@ -394,7 +394,7 @@ uint32_t virtqueue_get_desc_size(struct virtqueue *vq)
 
 	head_idx = vq->vq_available_idx & (vq->vq_nentries - 1);
 	avail_idx = vq->vq_ring.avail->ring[head_idx];
-	len = vq->vq_ring.desc[avail_idx].len;
+	len = B2C(vq->vq_ring.desc[avail_idx].len);
 
 	VQUEUE_IDLE(vq);
 
@@ -429,7 +429,7 @@ static uint16_t vq_ring_add_buffer(struct virtqueue *vq,
 
 		dp = &desc[idx];
 		dp->addr = virtqueue_virt_to_phys(vq, buf_list[i].buf);
-		dp->len = buf_list[i].len;
+		dp->len = C2B(buf_list[i].len);
 		dp->flags = 0;
 
 		if (i < needed - 1)

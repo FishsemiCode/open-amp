@@ -23,7 +23,7 @@ extern "C" {
 
 /* Configurable parameters */
 #ifndef RPMSG_BUFFER_SIZE
-#define RPMSG_BUFFER_SIZE	(512)
+#define RPMSG_BUFFER_SIZE	B2C(512)
 #endif
 
 /* The feature bitmap for virtio rpmsg */

@@ -84,7 +84,7 @@ struct rpmsg_hdr {
  */
 METAL_PACKED_BEGIN
 struct rpmsg_ns_msg {
-	char name[RPMSG_NAME_SIZE];
+	char name[B2C(RPMSG_NAME_SIZE)];
 	uint32_t addr;
 	uint32_t flags;
 } METAL_PACKED_END;

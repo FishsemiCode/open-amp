@@ -41,7 +41,7 @@ static unsigned char rproc_virtio_get_status(struct virtio_device *vdev)
 	vdev_rsc = rpvdev->vdev_rsc;
 	io = rpvdev->vdev_rsc_io;
 	status = metal_io_read8(io,
-				metal_io_virt_to_offset(io, &vdev_rsc->status));
+				metal_io_virt_to_offset(io, &vdev_rsc->config_len + 1));
 	return status;
 }
 
@@ -57,7 +57,7 @@ static void rproc_virtio_set_status(struct virtio_device *vdev,
 	vdev_rsc = rpvdev->vdev_rsc;
 	io = rpvdev->vdev_rsc_io;
 	metal_io_write8(io,
-			metal_io_virt_to_offset(io, &vdev_rsc->status),
+			metal_io_virt_to_offset(io, &vdev_rsc->config_len + 1),
 			status);
 	rpvdev->notify(rpvdev->priv, vdev->notifyid);
 }

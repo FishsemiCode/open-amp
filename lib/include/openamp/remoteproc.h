@@ -160,7 +160,7 @@ struct fw_rsc_carveout {
 	uint32_t len;
 	uint32_t flags;
 	uint32_t reserved;
-	uint8_t name[32];
+	uint8_t name[B2C(32)];
 } METAL_PACKED_END;
 
 /**
@@ -200,7 +200,7 @@ struct fw_rsc_devmem {
 	uint32_t len;
 	uint32_t flags;
 	uint32_t reserved;
-	uint8_t name[32];
+	uint8_t name[B2C(32)];
 } METAL_PACKED_END;
 
 /**
@@ -225,7 +225,7 @@ struct fw_rsc_trace {
 	uint32_t da;
 	uint32_t len;
 	uint32_t reserved;
-	uint8_t name[32];
+	uint8_t name[B2C(32)];
 } METAL_PACKED_END;
 
 /**
@@ -297,9 +297,9 @@ struct fw_rsc_vdev {
 	uint32_t dfeatures;
 	uint32_t gfeatures;
 	uint32_t config_len;
-	uint8_t status;
-	uint8_t num_of_vrings;
-	uint8_t reserved[2];
+	uint8_t status:8;
+	uint8_t num_of_vrings:8;
+	uint16_t reserved;
 	struct fw_rsc_vdev_vring vring[0];
 } METAL_PACKED_END;
 
@@ -353,8 +353,8 @@ struct fw_rsc_rproc_mem {
 METAL_PACKED_BEGIN
 struct fw_rsc_fw_chksum {
 	uint32_t type;
-	uint8_t algo[16];
-	uint8_t chksum[64];
+	uint8_t algo[B2C(16)];
+	uint8_t chksum[B2C(64)];
 } METAL_PACKED_END;
 
 struct loader_ops;
