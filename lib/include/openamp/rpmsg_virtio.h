@@ -81,12 +81,6 @@ static inline uint8_t rpmsg_virtio_get_status(struct rpmsg_virtio_device *rvdev)
 	return rvdev->vdev->func->get_status(rvdev->vdev);
 }
 
-static inline uint32_t
-	rpmsg_virtio_get_features(struct rpmsg_virtio_device *rvdev)
-{
-	return rvdev->vdev->func->get_features(rvdev->vdev);
-}
-
 static inline int
 	rpmsg_virtio_create_virtqueues(struct rpmsg_virtio_device *rvdev,
 				       int flags, unsigned int nvqs,

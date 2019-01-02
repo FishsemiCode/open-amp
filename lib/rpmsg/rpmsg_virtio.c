@@ -521,7 +521,6 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 	const char *vq_names[RPMSG_NUM_VRINGS];
 	typedef void (*vqcallback)(struct virtqueue *vq);
 	vqcallback callback[RPMSG_NUM_VRINGS];
-	unsigned long dev_features;
 	int status;
 	unsigned int i, role;
 
@@ -631,13 +630,11 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 	/* Initialize channels and endpoints list */
 	metal_list_init(&rdev->endpoints);
 
-	dev_features = rpmsg_virtio_get_features(rvdev);
-
 	/*
 	 * Create name service announcement endpoint if device supports name
 	 * service announcement feature.
 	 */
-	if ((dev_features & (1 << VIRTIO_RPMSG_F_NS))) {
+	if (vdev->features & (1 << VIRTIO_RPMSG_F_NS)) {
 		rpmsg_init_ept(&rdev->ns_ept, "NS",
 			       RPMSG_NS_EPT_ADDR, RPMSG_NS_EPT_ADDR,
 			       rpmsg_virtio_ns_callback, NULL);
