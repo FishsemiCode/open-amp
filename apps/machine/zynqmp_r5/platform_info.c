@@ -126,11 +126,11 @@ platform_create_proc(int proc_index, int rsc_index)
 	/* parse resource table to remoteproc */
 	ret = remoteproc_set_rsc_table(&rproc_inst, rsc_table, rsc_size);
 	if (ret) {
-		xil_printf("Failed to intialize remoteproc\r\n");
+		xil_printf("Failed to intialize remoteproc\n");
 		remoteproc_remove(&rproc_inst);
 		return NULL;
 	}
-	xil_printf("Initialize remoteproc successfully.\r\n");
+	xil_printf("Initialize remoteproc successfully.\n");
 
 	return &rproc_inst;
 }
@@ -188,29 +188,29 @@ platform_create_rpmsg_vdev(void *platform, unsigned int vdev_index,
 	shbuf = metal_io_phys_to_virt(shbuf_io,
 				      SHARED_MEM_PA + SHARED_BUF_OFFSET);
 
-	xil_printf("creating remoteproc virtio\r\n");
+	xil_printf("creating remoteproc virtio\n");
 	/* TODO: can we have a wrapper for the following two functions? */
 	vdev = remoteproc_create_virtio(rproc, vdev_index, role, rst_cb);
 	if (!vdev) {
-		xil_printf("failed remoteproc_create_virtio\r\n");
+		xil_printf("failed remoteproc_create_virtio\n");
 		goto err1;
 	}
 
-	xil_printf("initializing rpmsg shared buffer pool\r\n");
+	xil_printf("initializing rpmsg shared buffer pool\n");
 	/* Only RPMsg virtio master needs to initialize the shared buffers pool */
 	rpmsg_virtio_init_shm_pool(&shpool, shbuf,
 				   (SHARED_MEM_SIZE - SHARED_BUF_OFFSET));
 
-	xil_printf("initializing rpmsg vdev\r\n");
+	xil_printf("initializing rpmsg vdev\n");
 	/* RPMsg virtio slave can set shared buffers pool argument to NULL */
 	ret =  rpmsg_init_vdev(rpmsg_vdev, vdev, ns_bind_cb,
 			       shbuf_io,
 			       &shpool);
 	if (ret) {
-		xil_printf("failed rpmsg_init_vdev\r\n");
+		xil_printf("failed rpmsg_init_vdev\n");
 		goto err2;
 	}
-	xil_printf("initializing rpmsg vdev\r\n");
+	xil_printf("initializing rpmsg vdev\n");
 	return rpmsg_virtio_get_rpmsg_device(rpmsg_vdev);
 err2:
 	remoteproc_remove_virtio(rproc, vdev);

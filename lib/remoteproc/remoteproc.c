@@ -107,7 +107,7 @@ static void *remoteproc_get_rsc_table(struct remoteproc *rproc,
 			      NULL, 1);
 	if (ret < 0 || ret < (int)len || img_data == NULL) {
 		metal_log(METAL_LOG_ERROR,
-			  "get rsc failed: 0x%llx, 0x%llx\r\n", offset, len);
+			  "get rsc failed: 0x%llx, 0x%llx\n", offset, len);
 		rsc_table = RPROC_ERR_PTR(-RPROC_EINVAL);
 		goto error;
 	}
@@ -390,11 +390,11 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 		return -RPROC_ENODEV;
 
 	metal_mutex_acquire(&rproc->lock);
-	metal_log(METAL_LOG_DEBUG, "%s: check remoteproc status\r\n", __func__);
+	metal_log(METAL_LOG_DEBUG, "%s: check remoteproc status\n", __func__);
 	/* If remoteproc is not in ready state, cannot load executable */
 	if (rproc->state != RPROC_READY && rproc->state != RPROC_CONFIGURED) {
 		metal_log(METAL_LOG_ERROR,
-			  "load failure: invalid rproc state %d.\r\n",
+			  "load failure: invalid rproc state %d.\n",
 			  rproc->state);
 		metal_mutex_release(&rproc->lock);
 		return -RPROC_EINVAL;
@@ -402,13 +402,13 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 
 	if (!store_ops) {
 		metal_log(METAL_LOG_ERROR,
-			  "load failure: loader ops is not set.\r\n");
+			  "load failure: loader ops is not set.\n");
 		metal_mutex_release(&rproc->lock);
 		return -RPROC_EINVAL;
 	}
 
 	/* Open executable to get ready to parse */
-	metal_log(METAL_LOG_DEBUG, "%s: open executable image\r\n", __func__);
+	metal_log(METAL_LOG_DEBUG, "%s: open executable image\n", __func__);
 	ret = store_ops->open(store, path, &img_data);
 	if (ret <= 0) {
 		metal_log(METAL_LOG_ERROR,
@@ -423,7 +423,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 	/* Check executable format to select a parser */
 	loader = rproc->loader;
 	if (!loader) {
-		metal_log(METAL_LOG_DEBUG, "%s: check loader\r\n", __func__);
+		metal_log(METAL_LOG_DEBUG, "%s: check loader\n", __func__);
 		loader = remoteproc_check_fw_format(img_data, len);
 		if (!loader) {
 			metal_log(METAL_LOG_ERROR,
@@ -435,7 +435,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 	}
 
 	/* Load executable headers */
-	metal_log(METAL_LOG_DEBUG, "%s: loading headers\r\n", __func__);
+	metal_log(METAL_LOG_DEBUG, "%s: loading headers\n", __func__);
 	offset = 0;
 	last_load_state = RPROC_LOADER_NOT_READY;
 	while(1) {
@@ -444,11 +444,11 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 					  &noffset, &nlen);
 		last_load_state = ret;
 		metal_log(METAL_LOG_DEBUG,
-			  "%s, load header 0x%lx, 0x%x, next 0x%lx, 0x%x\r\n",
+			  "%s, load header 0x%lx, 0x%x, next 0x%lx, 0x%x\n",
 			  __func__, offset, len, noffset, nlen);
 		if (ret < 0) {
 			metal_log(METAL_LOG_ERROR,
-				  "load header failed 0x%lx,%d.\r\n",
+				  "load header failed 0x%lx,%d.\n",
 				  offset, len);
 
 			goto error2;
@@ -475,7 +475,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 				      NULL, 1);
 		if (ret < (int)nlen) {
 			metal_log(METAL_LOG_ERROR,
-				  "load image data failed 0x%x,%d\r\n",
+				  "load image data failed 0x%x,%d\n",
 				  noffset, nlen);
 			goto error2;
 		}
@@ -490,7 +490,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 	}
 
 	/* load executable data */
-	metal_log(METAL_LOG_DEBUG, "%s: load executable data\r\n", __func__);
+	metal_log(METAL_LOG_DEBUG, "%s: load executable data\n", __func__);
 	offset = 0;
 	len = 0;
 	ret = -RPROC_EINVAL;
@@ -508,12 +508,12 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 					&noffset, &nlen, &padding, &nmemsize);
 		if (ret < 0) {
 			metal_log(METAL_LOG_ERROR,
-				  "load data failed,0x%lx,%d\r\n",
+				  "load data failed,0x%lx,%d\n",
 				  noffset, nlen);
 			goto error3;
 		}
 		metal_log(METAL_LOG_DEBUG,
-			  "load data: da 0x%lx, offset 0x%lx, len = 0x%lx, memsize = 0x%lx, state 0x%x\r\n",
+			  "load data: da 0x%lx, offset 0x%lx, len = 0x%lx, memsize = 0x%lx, state 0x%x\n",
 			  da, noffset, nlen, nmemsize, ret);
 		last_load_state = ret;
 		if (da != RPROC_LOAD_ANYADDR) {
@@ -524,7 +524,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 			remoteproc_mmap(rproc, &pa, &da, nmemsize, 0, &io);
 			if (pa == METAL_BAD_PHYS || io == NULL) {
 				metal_log(METAL_LOG_ERROR,
-					  "load failed, no mapping for 0x%llx.\r\n",
+					  "load failed, no mapping for 0x%llx.\n",
 					  da);
 				ret = -RPROC_EINVAL;
 				goto error3;
@@ -534,7 +534,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 						      &img_data, pa, io, 1);
 				if (ret != (int)nlen) {
 					metal_log(METAL_LOG_ERROR,
-						  "load data failed 0x%lx, 0x%lx, 0x%x\r\n",
+						  "load data failed 0x%lx, 0x%lx, 0x%x\n",
 						  pa, noffset, nlen);
 					ret = -RPROC_EINVAL;
 					goto error3;
@@ -557,11 +557,11 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 				if ((last_load_state &
 				    RPROC_LOADER_POST_DATA_LOAD) != 0) {
 					metal_log(METAL_LOG_WARNING,
-						  "not all the headers are loaded\r\n");
+						  "not all the headers are loaded\n");
 					break;
 				}
 				metal_log(METAL_LOG_ERROR,
-					  "post-load image data failed 0x%x,%d\r\n",
+					  "post-load image data failed 0x%x,%d\n",
 					  noffset, nlen);
 				goto error3;
 			}
@@ -590,7 +590,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 		void *rsc_table_cp = rsc_table;
 
 		metal_log(METAL_LOG_DEBUG,
-			  "%s, update resource table\r\n", __func__);
+			  "%s, update resource table\n", __func__);
 		rsc_table = remoteproc_mmap(rproc, NULL, &rsc_da,
 					    rsc_size, 0, &io);
 		if (rsc_table) {
@@ -602,7 +602,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 						   rsc_table_cp, rsc_size);
 			if (ret != (int)rsc_size) {
 				metal_log(METAL_LOG_WARNING,
-					  "load: failed to update rsc\r\n");
+					  "load: failed to update rsc\n");
 			}
 			rproc->rsc_table = rsc_table;
 			rproc->rsc_len = rsc_size;
@@ -615,7 +615,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 		rsc_table = NULL;
 	}
 
-	metal_log(METAL_LOG_DEBUG, "%s: successfully load firmware\r\n",
+	metal_log(METAL_LOG_DEBUG, "%s: successfully load firmware\n",
 		  __func__);
 	/* get entry point from the firmware */
 	rproc->bootaddr = loader->get_entry(limg_info);
@@ -666,11 +666,11 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 	metal_assert(padding != NULL);
 
 	metal_mutex_acquire(&rproc->lock);
-	metal_log(METAL_LOG_DEBUG, "%s: check remoteproc status\r\n", __func__);
+	metal_log(METAL_LOG_DEBUG, "%s: check remoteproc status\n", __func__);
 	/* If remoteproc is not in ready state, cannot load executable */
 	if (rproc->state != RPROC_READY) {
 		metal_log(METAL_LOG_ERROR,
-			  "load failure: invalid rproc state %d.\r\n",
+			  "load failure: invalid rproc state %d.\n",
 			  rproc->state);
 		metal_mutex_release(&rproc->lock);
 		return -RPROC_EINVAL;
@@ -679,10 +679,10 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 	/* Check executable format to select a parser */
 	loader = rproc->loader;
 	if (!loader) {
-		metal_log(METAL_LOG_DEBUG, "%s: check loader\r\n", __func__);
+		metal_log(METAL_LOG_DEBUG, "%s: check loader\n", __func__);
 		if (img_data == NULL || offset != 0 || len == 0) {
 			metal_log(METAL_LOG_ERROR,
-				  "load failure, invalid inputs, not able to identify image.\r\n");
+				  "load failure, invalid inputs, not able to identify image.\n");
 			metal_mutex_release(&rproc->lock);
 			return -RPROC_EINVAL;
 		}
@@ -703,7 +703,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 		last_load_state = loader->get_load_state(limg_info);
 		if (last_load_state < 0) {
 			metal_log(METAL_LOG_ERROR,
-				  "load failure, not able get load state.\r\n");
+				  "load failure, not able get load state.\n");
 			metal_mutex_release(&rproc->lock);
 			return -RPROC_EINVAL;
 		}
@@ -717,13 +717,12 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 					  &limg_info, last_load_state,
 					  noffset, nlen);
 		metal_log(METAL_LOG_DEBUG,
-			  "%s, load header 0x%lx, 0x%x, next 0x%lx, 0x%x\r\n",
+			  "%s, load header 0x%lx, 0x%x, next 0x%lx, 0x%x\n",
 			  __func__, offset, len, *noffset, *nlen);
 		if (ret < 0) {
 			metal_log(METAL_LOG_ERROR,
-				  "load header failed 0x%lx,%d.\r\n",
+				  "load header failed 0x%lx,%d.\n",
 				  offset, len);
-
 			goto error1;
 		}
 		last_load_state = ret;
@@ -740,11 +739,11 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 					&limg_info, last_load_state, &da,
 					noffset, nlen, padding, nmlen);
 		metal_log(METAL_LOG_DEBUG,
-			  "%s, load data 0x%lx, 0x%x, next 0x%lx, 0x%x\r\n",
+			  "%s, load data 0x%lx, 0x%x, next 0x%lx, 0x%x\n",
 			  __func__, offset, len, *noffset, *nlen);
 		if (ret < 0) {
 			metal_log(METAL_LOG_ERROR,
-				  "load data failed,0x%lx,%d\r\n",
+				  "load data failed,0x%lx,%d\n",
 				  offset, len);
 			goto error1;
 		}
@@ -755,7 +754,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 			remoteproc_mmap(rproc, pa, &da, *nmlen, 0, io);
 			if (*pa == METAL_BAD_PHYS || io == NULL) {
 				metal_log(METAL_LOG_ERROR,
-					  "load failed, no mapping for 0x%llx.\r\n",
+					  "load failed, no mapping for 0x%llx.\n",
 					  da);
 				ret = -RPROC_EINVAL;
 				goto error1;
@@ -781,7 +780,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 						    rsc_size, 0, io);
 			if (*io == NULL) {
 				metal_log(METAL_LOG_ERROR,
-					  "load failed: failed to mmap rsc\r\n");
+					  "load failed: failed to mmap rsc\n");
 				metal_free_memory(lrsc_table);
 				goto error1;
 			}
@@ -790,7 +789,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 						  lrsc_table, rsc_size);
 			if (ret != (int)rsc_size) {
 				metal_log(METAL_LOG_ERROR,
-					  "load failed: failed to get rsc\r\n");
+					  "load failed: failed to get rsc\n");
 				metal_free_memory(lrsc_table);
 				goto error1;
 			}
@@ -799,7 +798,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 							 rsc_size);
 			if (ret < 0) {
 				metal_log(METAL_LOG_ERROR,
-					  "load failed: failed to parse rsc\r\n");
+					  "load failed: failed to parse rsc\n");
 				metal_free_memory(lrsc_table);
 				goto error1;
 			}
@@ -808,7 +807,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 						  lrsc_table, rsc_size);
 			if (ret != (int)rsc_size) {
 				metal_log(METAL_LOG_WARNING,
-					  "load executable, failed to update rsc\r\n");
+					  "load executable, failed to update rsc\n");
 			}
 			rproc->rsc_table = rsc_table;
 			rproc->rsc_len = rsc_size;

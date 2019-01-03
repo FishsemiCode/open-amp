@@ -69,7 +69,7 @@ zynqmp_r5_a53_proc_init(struct remoteproc *rproc,
 	ret = metal_device_open(prproc->ipi_bus_name, prproc->ipi_name,
 				&ipi_dev);
 	if (ret) {
-		xil_printf("failed to open ipi device: %d.\r\n", ret);
+		xil_printf("failed to open ipi device: %d.\n", ret);
 		return NULL;
 	}
 	rproc->priv = prproc;

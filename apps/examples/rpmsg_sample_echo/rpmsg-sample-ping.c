@@ -48,7 +48,7 @@ static int rpmsg_endpoint_cb(struct rpmsg_endpoint *ept, void *data, size_t len,
 
 	memset(payload, 0, RPMSG_BUFFER_SIZE);
 	memcpy(payload, data, len);
-	LPRINTF("received message %d: %s of size %lu \r\n",
+	LPRINTF("received message %d: %s of size %lu \n",
 		rnum + 1, payload, (unsigned long)len);
 
 	if (rnum == (MSG_LIMIT - 1))
@@ -56,14 +56,14 @@ static int rpmsg_endpoint_cb(struct rpmsg_endpoint *ept, void *data, size_t len,
 	else
 		sprintf (seed, "%s", HELLO_MSG);
 
-	LPRINTF(" seed %s: \r\n", seed);
+	LPRINTF(" seed %s: \n", seed);
 
 	if (strncmp(payload, seed, len)) {
 		LPERROR(" Invalid message is received.\n");
 		err_cnt++;
 		return RPMSG_SUCCESS;
 	}
-	LPRINTF(" rnum %d: \r\n", rnum);
+	LPRINTF(" rnum %d: \n", rnum);
 	rnum++;
 
 	return RPMSG_SUCCESS;

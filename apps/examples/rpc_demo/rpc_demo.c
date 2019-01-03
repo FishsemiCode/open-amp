@@ -58,53 +58,53 @@ int app(struct rpmsg_device *rdev, void *priv)
 		return -1;
 	}
 
-	printf("\r\nRemote>Baremetal Remote Procedure Call (RPC) Demonstration\r\n");
-	printf("\r\nRemote>***************************************************\r\n");
+	printf("\nRemote>Baremetal Remote Procedure Call (RPC) Demonstration\n");
+	printf("\nRemote>***************************************************\n");
 
-	printf("\r\nRemote>Rpmsg based retargetting to proxy initialized..\r\n");
+	printf("\nRemote>Rpmsg based retargetting to proxy initialized..\n");
 
 	/* Remote performing file IO on Master */
-	printf("\r\nRemote>FileIO demo ..\r\n");
+	printf("\nRemote>FileIO demo ..\n");
 
-	printf("\r\nRemote>Creating a file on master and writing to it..\r\n");
+	printf("\nRemote>Creating a file on master and writing to it..\n");
 	fd = open(fname, REDEF_O_CREAT | REDEF_O_WRONLY | REDEF_O_APPEND,
 		  S_IRUSR | S_IWUSR);
-	printf("\r\nRemote>Opened file '%s' with fd = %d\r\n", fname, fd);
+	printf("\nRemote>Opened file '%s' with fd = %d\n", fname, fd);
 
 	sprintf(wbuff, "This is a test string being written to file..");
 	bytes_written = write(fd, wbuff, strlen(wbuff));
-	printf("\r\nRemote>Wrote to fd = %d, size = %d, content = %s\r\n", fd,
+	printf("\nRemote>Wrote to fd = %d, size = %d, content = %s\n", fd,
 	       bytes_written, wbuff);
 	close(fd);
-	printf("\r\nRemote>Closed fd = %d\r\n", fd);
+	printf("\nRemote>Closed fd = %d\n", fd);
 
 	/* Remote performing file IO on Master */
-	printf("\r\nRemote>Reading a file on master and displaying its contents..\r\n");
+	printf("\nRemote>Reading a file on master and displaying its contents..\n");
 	fd = open(fname, REDEF_O_RDONLY, S_IRUSR | S_IWUSR);
-	printf("\r\nRemote>Opened file '%s' with fd = %d\r\n", fname, fd);
+	printf("\nRemote>Opened file '%s' with fd = %d\n", fname, fd);
 	bytes_read = read(fd, rbuff, 1024);
 	*(char *)(&rbuff[0] + bytes_read + 1) = 0;
-	printf("\r\nRemote>Read from fd = %d, size = %d, printing contents below .. %s\r\n",
+	printf("\nRemote>Read from fd = %d, size = %d, printing contents below .. %s\n",
 		fd, bytes_read, rbuff);
 	close(fd);
-	printf("\r\nRemote>Closed fd = %d\r\n", fd);
+	printf("\nRemote>Closed fd = %d\n", fd);
 
 	while (1) {
 		/* Remote performing STDIO on Master */
-		printf("\r\nRemote>Remote firmware using scanf and printf ..\r\n");
-		printf("\r\nRemote>Scanning user input from master..\r\n");
-		printf("\r\nRemote>Enter name\r\n");
+		printf("\nRemote>Remote firmware using scanf and printf ..\n");
+		printf("\nRemote>Scanning user input from master..\n");
+		printf("\nRemote>Enter name\n");
 		ret = scanf("%s", ubuff);
 		if (ret) {
-			printf("\r\nRemote>Enter age\r\n");
+			printf("\nRemote>Enter age\n");
 			ret = scanf("%d", &idata);
 			if (ret) {
-				printf("\r\nRemote>Enter value for pi\r\n");
+				printf("\nRemote>Enter value for pi\n");
 				ret = scanf("%f", &fdata);
 				if (ret) {
-					printf("\r\nRemote>User name = '%s'\r\n", ubuff);
-					printf("\r\nRemote>User age = '%d'\r\n", idata);
-					printf("\r\nRemote>User entered value of pi = '%f'\r\n", fdata);
+					printf("\nRemote>User name = '%s'\n", ubuff);
+					printf("\nRemote>User age = '%d'\n", idata);
+					printf("\nRemote>User entered value of pi = '%f'\n", fdata);
 				}
 			}
 		}
@@ -112,18 +112,18 @@ int app(struct rpmsg_device *rdev, void *priv)
 			scanf("%s", ubuff);
 			printf("Remote> Invalid value. Starting again....");
 		} else {
-			printf("\r\nRemote>Repeat demo ? (enter yes or no) \r\n");
+			printf("\nRemote>Repeat demo ? (enter yes or no) \n");
 			scanf("%s", ubuff);
 			if ((strcmp(ubuff, "no")) && (strcmp(ubuff, "yes"))) {
-				printf("\r\nRemote>Invalid option. Starting again....\r\n");
+				printf("\nRemote>Invalid option. Starting again....\n");
 			} else if ((!strcmp(ubuff, "no"))) {
-				printf("\r\nRemote>RPC retargetting quitting ...\r\n");
+				printf("\nRemote>RPC retargetting quitting ...\n");
 				break;
 			}
 		}
 	}
 
-	printf("\r\nRemote> Firmware's rpmsg-rpc-channel going down! \r\n");
+	printf("\nRemote> Firmware's rpmsg-rpc-channel going down! \n");
 	rpccall.id = TERM_SYSCALL_ID;
 	rpmsg_rpc_send(&rpc, &rpccall, sizeof(rpccall), NULL, 0);
 

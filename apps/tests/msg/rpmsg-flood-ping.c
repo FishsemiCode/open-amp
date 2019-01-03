@@ -161,7 +161,7 @@ int app (struct rpmsg_device *rdev, void *priv)
 	}
 
 	if (ept_deleted)
-		LPRINTF("Remote RPMsg endpoint is destroyed unexpected.\r\n");
+		LPRINTF("Remote RPMsg endpoint is destroyed unexpected.\n");
 
 	LPRINTF("**********************************\n");
 	LPRINTF(" Test Results: Error count = %d \n", err_cnt);

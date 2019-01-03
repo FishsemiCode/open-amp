@@ -181,12 +181,12 @@ platform_create_rpmsg_vdev(void *platform, unsigned int vdev_index,
 	/* Only RPMsg virtio master needs to initialize the shared buffers pool */
 	rpmsg_virtio_init_shm_pool(&shpool, shbuf, SHARED_BUF_SIZE);
 
-	printf("initializing rpmsg vdev\r\n");
+	printf("initializing rpmsg vdev\n");
 	/* RPMsg virtio slave can set shared buffers pool argument to NULL */
 	ret = rpmsg_init_vdev(rpmsg_vdev, vdev, ns_bind_cb,
 			      shbuf_io, &shpool);
 	if (ret) {
-		printf("failed rpmsg_init_vdev\r\n");
+		printf("failed rpmsg_init_vdev\n");
 		goto err2;
 	}
 	return rpmsg_virtio_get_rpmsg_device(rpmsg_vdev);

@@ -32,7 +32,7 @@ int mem_image_open(void *store, const char *path, const void **image_data)
 
 	(void)(path);
 	if (image_data == NULL) {
-		LPERROR("%s: input image_data is NULL\r\n", __func__);
+		LPERROR("%s: input image_data is NULL\n", __func__);
 		return -EINVAL;
 	}
 	*image_data = fw_base;
@@ -60,7 +60,7 @@ int mem_image_load(void *store, size_t offset, size_t size,
 		__func__, offset, size);
 	if (pa == METAL_BAD_PHYS) {
 		if (data == NULL) {
-			LPERROR("%s: data is NULL while pa is ANY\r\n",
+			LPERROR("%s: data is NULL while pa is ANY\n",
 				__func__);
 			return -EINVAL;
 		}
@@ -69,13 +69,13 @@ int mem_image_load(void *store, size_t offset, size_t size,
 		void *va;
 
 		if (io == NULL) {
-			LPERROR("%s, io is NULL while pa is not ANY\r\n",
+			LPERROR("%s, io is NULL while pa is not ANY\n",
 				__func__);
 			return -EINVAL;
 		}
 		va = metal_io_phys_to_virt(io, pa);
 		if (va == NULL) {
-			LPERROR("%s: no va is found\r\n", __func__);
+			LPERROR("%s: no va is found\n", __func__);
 			return -EINVAL;
 		}
 		memcpy(va, (const void *)((const char *)fw_base + offset), size);

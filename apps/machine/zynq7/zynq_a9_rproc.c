@@ -57,7 +57,7 @@ zynq_a9_proc_init(struct remoteproc *rproc,
 	ret = metal_device_open(prproc->gic_bus_name, prproc->gic_name,
 				&dev);
 	if (ret) {
-		xil_printf("failed to open GIC device: %d.\r\n", ret);
+		xil_printf("failed to open GIC device: %d.\n", ret);
 		return NULL;
 	}
 	rproc->priv = prproc;
@@ -72,7 +72,7 @@ zynq_a9_proc_init(struct remoteproc *rproc,
 	irq_vect = prproc->irq_notification;
 	metal_irq_register(irq_vect, zynq_a9_proc_irq_handler, NULL, rproc);
 	metal_irq_enable(irq_vect);
-	xil_printf("Successfully intialize remoteproc.\r\n");
+	xil_printf("Successfully intialize remoteproc.\n");
 	return rproc;
 err1:
 	metal_device_close(dev);

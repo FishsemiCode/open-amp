@@ -44,7 +44,7 @@ static int rpmsg_endpoint_cb(struct rpmsg_endpoint *ept, void *data, size_t len,
 	(void)ept;
 	(void)src;
 	(void)priv;
-	LPRINTF(" received payload number %lu of size %lu \r\n",
+	LPRINTF(" received payload number %lu of size %lu \n",
 		r_payload->num, (unsigned long)len);
 
 	if (r_payload->size == 0) {

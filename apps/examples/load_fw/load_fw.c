@@ -96,25 +96,25 @@ int load_exectuable_block(struct remoteproc *rproc,
 	/* Configure remoteproc to get ready to load executable */
 	remoteproc_config(rproc, NULL);
 	/* Load remoteproc executable */
-	LPRINTF("Start to load executable with remoteproc_load() \r\n");
+	LPRINTF("Start to load executable with remoteproc_load() \n");
 	ret = remoteproc_load(rproc, NULL, store, store_ops, NULL);
 	if (ret) {
-		LPRINTF("failed to load firmware\r\n");
+		LPRINTF("failed to load firmware\n");
 		return ret;
 	}
 	/* Start the processor */
 	ret = remoteproc_start(rproc);
 	if (ret) {
-		LPRINTF("failed to start processor\r\n");
+		LPRINTF("failed to start processor\n");
 		return ret;
 	}
-	LPRINTF("successfully started the processor\r\n");
+	LPRINTF("successfully started the processor\n");
 	/* ... */
 	asm volatile("wfi");
-	LPRINTF("going to stop the processor\r\n");
+	LPRINTF("going to stop the processor\n");
 	remoteproc_stop(rproc);
 	/* application may want to do some cleanup before shutdown */
-	LPRINTF("going to shutdown the processor\r\n");
+	LPRINTF("going to shutdown the processor\n");
 	remoteproc_shutdown(rproc);
 	return 0;
 }
@@ -137,7 +137,7 @@ int load_exectuable_noblock(struct remoteproc *rproc,
 	/* Configure remoteproc to get ready to load executable */
 	remoteproc_config(rproc, NULL);
 	/* Load remoteproc executable */
-	LPRINTF("Start to load executable with remoteproc_load() \r\n");
+	LPRINTF("Start to load executable with remoteproc_load() \n");
 	ret = store_ops->open(store, img_path, &img_data);
 	if (ret <= 0)
 		return -EINVAL;
@@ -148,13 +148,13 @@ int load_exectuable_noblock(struct remoteproc *rproc,
 		pa = METAL_BAD_PHYS;
 		io = NULL;
 		nmlen = 0;
-		LPRINTF("%s, loading 0x%lx,0x%lx\r\n",
+		LPRINTF("%s, loading 0x%lx,0x%lx\n",
 			 __func__, offset, len);
 		ret = remoteproc_load_noblock(rproc, img_data, offset, len,
 					      &img_info, &pa, &io, &noffset,
 					      &nlen, &nmlen, &padding);
 		if (ret) {
-			LPERROR("failed to load executable, 0x%lx,0x%lx\r\n",
+			LPERROR("failed to load executable, 0x%lx,0x%lx\n",
 				offset, len);
 			return ret;
 		}
@@ -165,7 +165,7 @@ int load_exectuable_noblock(struct remoteproc *rproc,
 		ret = store_ops->load(store, noffset, nlen, &img_data, pa,
 				      io, 1);
 		if (ret != (int)nlen) {
-			LPERROR("failed to load data to memory, 0x%lx,0x%lx\r\n",
+			LPERROR("failed to load data to memory, 0x%lx,0x%lx\n",
 				noffset, nlen);
 			return ret;
 		}
@@ -183,16 +183,16 @@ int load_exectuable_noblock(struct remoteproc *rproc,
 	/* Start the processor */
 	ret = remoteproc_start(rproc);
 	if (ret) {
-		LPRINTF("failed to start processor\r\n");
+		LPRINTF("failed to start processor\n");
 		return ret;
 	}
-	LPRINTF("successfully started the processor\r\n");
+	LPRINTF("successfully started the processor\n");
 	/* ... */
 	asm volatile("wfi");
-	LPRINTF("going to stop the processor\r\n");
+	LPRINTF("going to stop the processor\n");
 	remoteproc_stop(rproc);
 	/* application may want to do some cleanup before shutdown */
-	LPRINTF("going to shutdown the processor\r\n");
+	LPRINTF("going to shutdown the processor\n");
 	remoteproc_shutdown(rproc);
 	return 0;
 }
@@ -211,11 +211,11 @@ int main(void)
 	};
 
 	if (XST_SUCCESS != IpiConfigure(&IpiInst)) {
-		LPERROR("Failed to config IPI instance\r\n");
+		LPERROR("Failed to config IPI instance\n");
 		return -1;
 	}
 	if (XST_SUCCESS != XPm_InitXilpm(&IpiInst)) {
-		LPERROR("Failed to initialize PM\r\n");
+		LPERROR("Failed to initialize PM\n");
 		return -1;
 	}
 
@@ -225,13 +225,13 @@ int main(void)
 	/* Initialize remoteproc instance */
 	ret_rproc = remoteproc_init(&rproc, &r5_rproc_ops, &cpu_id);
 	if (!ret_rproc) {
-		LPRINTF("failed to initialize coprocessor\r\n");
+		LPRINTF("failed to initialize coprocessor\n");
 		return -1;
 	}
 
 	ret = load_exectuable_block(&rproc, &mem_image_store_ops, store, NULL);
 	if (ret < 0) {
-		LPERROR("load_exectuable_block failed\r\n");
+		LPERROR("load_exectuable_block failed\n");
 		/* Make sure the remote is shut down */
 		remoteproc_shutdown(&rproc);
 		return -1;
@@ -240,7 +240,7 @@ int main(void)
 	ret = load_exectuable_noblock(&rproc, &mem_image_store_ops, store,
 				      NULL);
 	if (ret < 0) {
-		LPERROR("load_exectuable_noblock failed\r\n");
+		LPERROR("load_exectuable_noblock failed\n");
 		/* Make sure the remote is shut down */
 		remoteproc_shutdown(&rproc);
 		return -1;
