@@ -7,6 +7,7 @@
  */
 
 #include <metal/alloc.h>
+#include <metal/cpu.h>
 #include <metal/log.h>
 #include <metal/utilities.h>
 #include <openamp/elf_loader.h>
@@ -144,7 +145,7 @@ int remoteproc_set_rsc_table(struct remoteproc *rproc,
 
 	io = remoteproc_get_io_with_va(rproc, (void *)rsc_table);
 	if (!io)
-		return -EINVAL;
+		return -RPROC_EINVAL;
 	ret = remoteproc_parse_rsc_table(rproc, rsc_table, rsc_size);
 	if (!ret) {
 		rproc->rsc_table = rsc_table;
@@ -178,10 +179,10 @@ int remoteproc_remove(struct remoteproc *rproc)
 		if (rproc->state == RPROC_OFFLINE)
 			rproc->ops->remove(rproc);
 		else
-			ret = -EBUSY;
+			ret = -RPROC_EAGAIN;
 		metal_mutex_release(&rproc->lock);
 	} else {
-		ret = -EINVAL;
+		ret = -RPROC_EINVAL;
 	}
 	return ret;
 }
@@ -498,7 +499,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 	metal_log(METAL_LOG_DEBUG, "%s: load executable data\r\n", __func__);
 	offset = 0;
 	len = 0;
-	ret = -EINVAL;
+	ret = -RPROC_EINVAL;
 	while(1) {
 		unsigned char padding;
 		size_t nmemsize;
@@ -891,16 +892,31 @@ remoteproc_create_virtio(struct remoteproc *rproc,
 	metal_list_for_each(&rproc->vdevs, node) {
 		rpvdev = metal_container_of(node, struct remoteproc_virtio,
 					    node);
-		if (rpvdev->vdev.index == notifyid)
+		if (rpvdev->vdev.index == notifyid) {
+			metal_mutex_release(&rproc->lock);
 			return &rpvdev->vdev;
+		}
 	}
 	vdev = rproc_virtio_create_vdev(role, notifyid,
 					vdev_rsc, vdev_rsc_io, rproc,
 					remoteproc_virtio_notify,
 					rst_cb);
+	if (!vdev) {
+		metal_mutex_release(&rproc->lock);
+		return NULL;
+	}
+
 	rpvdev = metal_container_of(vdev, struct remoteproc_virtio, vdev);
 	metal_list_add_tail(&rproc->vdevs, &rpvdev->node);
 	num_vrings = vdev_rsc->num_of_vrings;
+
+	while (1) {
+		if ((vdev->func->get_status(vdev) &
+		    VIRTIO_CONFIG_STATUS_DRIVER_OK)) {
+			break;
+		}
+		metal_cpu_yield();
+	}
 	/* set the notification id for vrings */
 	for (i = 0; i < num_vrings; i++) {
 		struct fw_rsc_vdev_vring *vring_rsc;
