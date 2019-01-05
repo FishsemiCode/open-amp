@@ -15,7 +15,7 @@
 
 #include "rpmsg_internal.h"
 
-#define RPMSG_NUM_VRINGS (2)
+#define RPMSG_NUM_VRINGS                        2
 
 /* Total tick count for 15secs - 1usec tick. */
 #define RPMSG_TICK_COUNT                        15000000
@@ -203,7 +203,7 @@ static void *rpmsg_virtio_get_rx_buffer(struct rpmsg_virtio_device *rvdev,
  *
  * Returns buffer size available for sending messages.
  *
- * @param channel - pointer to rpmsg channel
+ * @param rvdev - pointer to rpmsg device
  *
  * @return - buffer size
  *
@@ -216,8 +216,8 @@ static int _rpmsg_virtio_get_buffer_size(struct rpmsg_virtio_device *rvdev)
 #ifndef VIRTIO_SLAVE_ONLY
 	if (role == RPMSG_MASTER) {
 		/*
-		 * If device role is Remote then buffers are provided by us
-		 * (RPMSG Master), so just provide the macro.
+		 * If device role is Master then buffers are provided by us,
+		 * so just provide the macro.
 		 */
 		length = rvdev->shbuf_size - sizeof(struct rpmsg_hdr);
 	}
@@ -474,11 +474,11 @@ static void rpmsg_virtio_rx_callback(struct virtqueue *vq)
  * This callback handles name service announcement from the remote device
  * and creates/deletes rpmsg channels.
  *
- * @param server_chnl - pointer to server channel control block.
- * @param data        - pointer to received messages
- * @param len         - length of received data
- * @param priv        - any private data
- * @param src         - source address
+ * @param ept  - pointer to server channel control block.
+ * @param data - pointer to received messages
+ * @param len  - length of received data
+ * @param priv - any private data
+ * @param src  - source address
  *
  * @return - rpmag endpoint callback handled
  */
@@ -557,8 +557,7 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 {
 	struct rpmsg_device *rdev;
 	const char *vq_names[RPMSG_NUM_VRINGS];
-	typedef void (*vqcallback)(struct virtqueue *vq);
-	vqcallback callback[RPMSG_NUM_VRINGS];
+	vq_callback *callback[RPMSG_NUM_VRINGS];
 	int status;
 	unsigned int i, role;
 

@@ -52,16 +52,15 @@ typedef void (*rpmsg_ns_bind_cb)(struct rpmsg_device *rdev,
 
 /**
  * struct rpmsg_endpoint - binds a local rpmsg address to its user
- * @name:name of the service supported
+ * @name: name of the service supported
  * @rdev: pointer to the rpmsg device
  * @addr: local address of the endpoint
  * @dest_addr: address of the default remote endpoint binded.
  * @cb: user rx callback, return value of this callback is reserved
  *      for future use, for now, only allow RPMSG_SUCCESS as return value.
- * @ns_unbind_cb: end point service service unbind callback, called when remote
+ * @ns_unbind_cb: end point service unbind callback, called when remote
  *                ept is destroyed.
  * @node: end point node.
- * @addr: local rpmsg address
  * @priv: private data for the driver's use
  *
  * In essence, an rpmsg endpoint represents a listener on the rpmsg bus, as
@@ -103,7 +102,7 @@ struct rpmsg_device_ops {
  * struct rpmsg_device - representation of a RPMsg device
  * @endpoints: list of endpoints
  * @ns_ept: name service endpoint
- * @bitmap: table endpoin address allocation.
+ * @bitmap: table endpoint address allocation.
  * @lock: mutex lock for rpmsg management
  * @ns_bind_cb: callback handler for name service announcement without local
  *              endpoints waiting to bind.
@@ -440,7 +439,7 @@ static inline int rpmsg_send_nocopy(struct rpmsg_endpoint *ept, const void *data
  * rpmsg_init_ept - initialize rpmsg endpoint
  *
  * Initialize an RPMsg endpoint with a name, source address,
- * remoteproc address, endpoitn callback, and destroy endpoint callback.
+ * remoteproc address, endpoint callback, and destroy endpoint callback.
  *
  * @ept: pointer to rpmsg endpoint
  * @name: service name associated to the endpoint
@@ -467,7 +466,7 @@ static inline void rpmsg_init_ept(struct rpmsg_endpoint *ept,
  * rpmsg_create_ept - create rpmsg endpoint and register it to rpmsg device
  *
  * Create a RPMsg endpoint, initialize it with a name, source address,
- * remoteproc address, endpoitn callback, and destroy endpoint callback,
+ * remoteproc address, endpoint callback, and destroy endpoint callback,
  * and register it to the RPMsg device.
  *
  * @ept: pointer to rpmsg endpoint
@@ -514,8 +513,8 @@ void rpmsg_destroy_ept(struct rpmsg_endpoint *ept);
  */
 static inline unsigned int is_rpmsg_ept_ready(struct rpmsg_endpoint *ept)
 {
-	return (ept->dest_addr != RPMSG_ADDR_ANY &&
-		ept->addr != RPMSG_ADDR_ANY);
+	return ept->dest_addr != RPMSG_ADDR_ANY &&
+		ept->addr != RPMSG_ADDR_ANY;
 }
 
 #if defined __cplusplus
