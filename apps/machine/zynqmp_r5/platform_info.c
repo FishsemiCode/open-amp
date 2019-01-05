@@ -100,7 +100,7 @@ platform_create_proc(int proc_index, int rsc_index)
 	rsc_table = get_resource_table(rsc_index, &rsc_size);
 
 	/* Register IPI device */
-	(void)metal_register_generic_device(&ipi_device);
+	metal_register_generic_device(&ipi_device);
 	/* Initialize remoteproc instance */
 	if (!remoteproc_init(&rproc_inst, &zynqmp_r5_a53_proc_ops, &rproc_priv))
 		return NULL;

@@ -131,7 +131,7 @@ static int remoteproc_parse_rsc_table(struct remoteproc *rproc,
 {
 	struct metal_io_region *io;
 
-	io = remoteproc_get_io_with_va(rproc, (void *)rsc_table);
+	io = remoteproc_get_io_with_va(rproc, rsc_table);
 	return handle_rsc_table(rproc, rsc_table, rsc_size, io);
 }
 
@@ -142,7 +142,7 @@ int remoteproc_set_rsc_table(struct remoteproc *rproc,
 	int ret;
 	struct metal_io_region *io;
 
-	io = remoteproc_get_io_with_va(rproc, (void *)rsc_table);
+	io = remoteproc_get_io_with_va(rproc, rsc_table);
 	if (!io)
 		return -RPROC_EINVAL;
 	ret = remoteproc_parse_rsc_table(rproc, rsc_table, rsc_size);
@@ -521,7 +521,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 			img_data = NULL;
 			/* get the I/O region from remoteproc */
 			pa = METAL_BAD_PHYS;
-			(void)remoteproc_mmap(rproc, &pa, &da, nmemsize, 0, &io);
+			remoteproc_mmap(rproc, &pa, &da, nmemsize, 0, &io);
 			if (pa == METAL_BAD_PHYS || io == NULL) {
 				metal_log(METAL_LOG_ERROR,
 					  "load failed, no mapping for 0x%llx.\r\n",
@@ -752,7 +752,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 		if (da != RPROC_LOAD_ANYADDR) {
 			/* get the I/O region from remoteproc */
 			*pa = METAL_BAD_PHYS;
-			(void)remoteproc_mmap(rproc, pa, &da, *nmlen, 0, io);
+			remoteproc_mmap(rproc, pa, &da, *nmlen, 0, io);
 			if (*pa == METAL_BAD_PHYS || io == NULL) {
 				metal_log(METAL_LOG_ERROR,
 					  "load failed, no mapping for 0x%llx.\r\n",
@@ -787,7 +787,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 			}
 			rsc_io_offset = metal_io_virt_to_offset(*io, rsc_table);
 			ret = metal_io_block_read(*io, rsc_io_offset,
-						  lrsc_table, (int)rsc_size);
+						  lrsc_table, rsc_size);
 			if (ret != (int)rsc_size) {
 				metal_log(METAL_LOG_ERROR,
 					  "load failed: failed to get rsc\r\n");
@@ -805,13 +805,13 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 			}
 			/* Update resource table */
 			ret = metal_io_block_write(*io, rsc_io_offset,
-						  lrsc_table, (int)rsc_size);
+						  lrsc_table, rsc_size);
 			if (ret != (int)rsc_size) {
 				metal_log(METAL_LOG_WARNING,
-					  "load exectuable, failed to update rsc\r\n");
+					  "load executable, failed to update rsc\r\n");
 			}
 			rproc->rsc_table = rsc_table;
-			rproc->rsc_len = (int)rsc_size;
+			rproc->rsc_len = rsc_size;
 			metal_free_memory(lrsc_table);
 		}
 

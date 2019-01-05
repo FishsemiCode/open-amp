@@ -94,7 +94,7 @@ static int linux_proc_block_read(struct metal_io_region *io,
 	void *src = metal_io_virt(io, offset);
 
 	(void)order;
-	(void)memcpy(dst, src, len);
+	memcpy(dst, src, len);
 	return len;
 }
 
@@ -107,7 +107,7 @@ static int linux_proc_block_write(struct metal_io_region *io,
 	void *dst = metal_io_virt(io, offset);
 
 	(void)order;
-	(void)memcpy(dst, src, len);
+	memcpy(dst, src, len);
 	return len;
 }
 
@@ -120,8 +120,7 @@ static void linux_proc_block_set(struct metal_io_region *io,
 	void *dst = metal_io_virt(io, offset);
 
 	(void)order;
-	(void)memset(dst, value, len);
-	return;
+	memset(dst, value, len);
 }
 
 static struct metal_io_ops linux_proc_io_ops = {

@@ -319,7 +319,7 @@ void rpmsg_destroy_ept(struct rpmsg_endpoint *ept)
 
 	rdev = ept->rdev;
 	if (ept->addr != RPMSG_NS_EPT_ADDR)
-		(void)rpmsg_send_ns_message(ept, RPMSG_NS_DESTROY);
+		rpmsg_send_ns_message(ept, RPMSG_NS_DESTROY);
 	metal_mutex_acquire(&rdev->lock);
 	rpmsg_unregister_endpoint(ept);
 	metal_mutex_release(&rdev->lock);

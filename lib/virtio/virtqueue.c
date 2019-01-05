@@ -81,7 +81,7 @@ int virtqueue_create(struct virtio_device *virt_dev, unsigned short id,
 		vq->notify = notify;
 
 		/* Initialize vring control block in virtqueue. */
-		vq_ring_init(vq, (void *)ring->vaddr, ring->align);
+		vq_ring_init(vq, ring->vaddr, ring->align);
 	}
 
 	return status;
@@ -180,7 +180,7 @@ void *virtqueue_get_buffer(struct virtqueue *vq, uint32_t *len, uint16_t *idx)
 
 	atomic_thread_fence(memory_order_seq_cst);
 
-	desc_idx = (uint16_t)uep->id;
+	desc_idx = uep->id;
 	if (len)
 		*len = uep->len;
 
@@ -500,7 +500,7 @@ static void vq_ring_init(struct virtqueue *vq, void *ring_mem, int alignment)
 	size = vq->vq_nentries;
 	vr = &vq->vq_ring;
 
-	vring_init(vr, size, (unsigned char *)ring_mem, alignment);
+	vring_init(vr, size, ring_mem, alignment);
 
 	if (vq->vq_dev->role == VIRTIO_DEV_MASTER) {
 		for (i = 0; i < size - 1; i++)
@@ -642,7 +642,7 @@ static int virtqueue_nused(struct virtqueue *vq)
 
 	used_idx = vq->vq_ring.used->idx;
 
-	nused = (uint16_t)(used_idx - vq->vq_used_cons_idx);
+	nused = used_idx - vq->vq_used_cons_idx;
 	VQASSERT(vq, nused <= vq->vq_nentries, "used more than available");
 
 	return nused;
@@ -659,7 +659,7 @@ static int virtqueue_navail(struct virtqueue *vq)
 
 	avail_idx = vq->vq_ring.avail->idx;
 
-	navail = (uint16_t)(avail_idx - vq->vq_available_idx);
+	navail = avail_idx - vq->vq_available_idx;
 	VQASSERT(vq, navail <= vq->vq_nentries, "avail more than available");
 
 	return navail;

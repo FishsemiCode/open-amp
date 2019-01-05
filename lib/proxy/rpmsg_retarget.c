@@ -123,7 +123,7 @@ int rpmsg_rpc_send(struct rpmsg_rpc_data *rpc,
 	rpc->respbuf = resp;
 	rpc->respbuf_len = resp_len;
 	metal_spinlock_release(&rpc->buflock);
-	(void)atomic_flag_test_and_set(&rpc->nacked);
+	atomic_flag_test_and_set(&rpc->nacked);
 	ret = rpmsg_send(&rpc->ept, req, len);
 	if (ret < 0)
 		return -EINVAL;
@@ -183,7 +183,7 @@ int _open(const char *filename, int flags, int mode)
 
 	resp.id = 0;
 	ret = rpmsg_rpc_send(rpc, tmpbuf, payload_size,
-			     (void *)&resp, sizeof(resp));
+			     &resp, sizeof(resp));
 	if (ret >= 0) {
 		/* Obtain return args and return to caller */
 		if (resp.id == OPEN_SYSCALL_ID)
@@ -226,7 +226,7 @@ int _read(int fd, char *buffer, int buflen)
 
 	resp = (struct rpmsg_rpc_syscall *)tmpbuf;
 	resp->id = 0;
-	ret = rpmsg_rpc_send(rpc, (void *)&syscall, payload_size,
+	ret = rpmsg_rpc_send(rpc, &syscall, payload_size,
 			     tmpbuf, sizeof(tmpbuf));
 
 	/* Obtain return args and return to caller */
@@ -285,12 +285,12 @@ int _write(int fd, const char *ptr, int len)
 	tmpptr = tmpbuf + sizeof(*syscall);
 	memcpy(tmpptr, ptr, len);
 	if (null_term == 1) {
-		*(char *)(tmpptr + len + null_term) = 0;
+		*(tmpptr + len + null_term) = 0;
 		payload_size += 1;
 	}
 	resp.id = 0;
 	ret = rpmsg_rpc_send(rpc, tmpbuf, payload_size,
-			     (void *)&resp, sizeof(resp));
+			     &resp, sizeof(resp));
 
 	if (ret >= 0) {
 		if (resp.id == WRITE_SYSCALL_ID)
@@ -330,8 +330,8 @@ int _close(int fd)
 	syscall.args.data_len = 0;	/*not used */
 
 	resp.id = 0;
-	ret = rpmsg_rpc_send(rpc, (void*)&syscall, payload_size,
-			     (void*)&resp, sizeof(resp));
+	ret = rpmsg_rpc_send(rpc, &syscall, payload_size,
+			     &resp, sizeof(resp));
 
 	if (ret >= 0) {
 		if (resp.id == CLOSE_SYSCALL_ID)

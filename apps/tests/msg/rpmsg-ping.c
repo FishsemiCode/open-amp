@@ -83,11 +83,10 @@ static void rpmsg_name_service_bind_cb(struct rpmsg_device *rdev,
 	if (strcmp(name, RPMSG_SERVICE_NAME))
 		LPERROR("Unexpected name service %s.\n", name);
 	else
-		(void)rpmsg_create_ept(&lept, rdev, RPMSG_SERVICE_NAME,
-				       APP_EPT_ADDR, dest,
-				       rpmsg_endpoint_cb,
-				       rpmsg_service_unbind);
-
+		rpmsg_create_ept(&lept, rdev, RPMSG_SERVICE_NAME,
+				 APP_EPT_ADDR, dest,
+				 rpmsg_endpoint_cb,
+				 rpmsg_service_unbind);
 }
 
 /*-----------------------------------------------------------------------------*

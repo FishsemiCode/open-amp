@@ -125,7 +125,7 @@ int app(struct rpmsg_device *rdev, void *priv)
 
 	printf("\r\nRemote> Firmware's rpmsg-rpc-channel going down! \r\n");
 	rpccall.id = TERM_SYSCALL_ID;
-	(void)rpmsg_rpc_send(&rpc, &rpccall, sizeof(rpccall), NULL, 0);
+	rpmsg_rpc_send(&rpc, &rpccall, sizeof(rpccall), NULL, 0);
 
 	LPRINTF("Release remoteproc procedure call\n");
 	rpmsg_rpc_release(&rpc);
