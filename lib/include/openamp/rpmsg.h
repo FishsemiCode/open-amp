@@ -107,6 +107,7 @@ struct rpmsg_device_ops {
  * @ns_bind_cb: callback handler for name service announcement without local
  *              endpoints waiting to bind.
  * @ops: RPMsg device operations
+ * @support_ns: create/destroy namespace message
  */
 struct rpmsg_device {
 	struct metal_list endpoints;
@@ -115,6 +116,7 @@ struct rpmsg_device {
 	metal_mutex_t lock;
 	rpmsg_ns_bind_cb ns_bind_cb;
 	struct rpmsg_device_ops ops;
+	bool support_ns;
 };
 
 /**

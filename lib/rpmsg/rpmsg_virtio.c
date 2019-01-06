@@ -572,6 +572,7 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 	rdev->ops.get_tx_payload_buffer = rpmsg_virtio_get_tx_payload_buffer;
 	rdev->ops.send_offchannel_nocopy = rpmsg_virtio_send_offchannel_nocopy;
 	rdev->ops.send_offchannel_raw = rpmsg_virtio_send_offchannel_raw;
+	rdev->support_ns = !!(vdev->features & (1 << VIRTIO_RPMSG_F_NS));
 
 	if (vdev->features & (1 << VIRTIO_RPMSG_F_BUFSZ)) {
 		uint32_t size = 0;
@@ -679,7 +680,7 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 	 * Create name service announcement endpoint if device supports name
 	 * service announcement feature.
 	 */
-	if (vdev->features & (1 << VIRTIO_RPMSG_F_NS)) {
+	if (rdev->support_ns) {
 		rpmsg_init_ept(&rdev->ns_ept, "NS",
 			       RPMSG_NS_EPT_ADDR, RPMSG_NS_EPT_ADDR,
 			       rpmsg_virtio_ns_callback, NULL);
