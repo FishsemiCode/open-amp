@@ -28,6 +28,7 @@ extern "C" {
 
 /* The feature bitmap for virtio rpmsg */
 #define VIRTIO_RPMSG_F_NS	0 /* RP supports name service notifications */
+#define VIRTIO_RPMSG_F_BIND	1 /* RP supports bind/unbind through name service */
 #define VIRTIO_RPMSG_F_BUFSZ	2 /* RP supports get buffer size from config space */
 
 /**

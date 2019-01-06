@@ -45,10 +45,12 @@ extern "C" {
  *
  * @RPMSG_NS_CREATE: a new remote service was just created
  * @RPMSG_NS_DESTROY: a known remote service was just destroyed
+ * @RPMSG_NS_BIND: a new remote service notify it's address
  */
 enum rpmsg_ns_flags {
 	RPMSG_NS_CREATE = 0,
 	RPMSG_NS_DESTROY = 1,
+	RPMSG_NS_BIND = 2,
 };
 
 /**

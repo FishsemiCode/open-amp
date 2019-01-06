@@ -509,13 +509,13 @@ static int rpmsg_virtio_ns_callback(struct rpmsg_endpoint *ept, void *data,
 	metal_mutex_acquire(&rdev->lock);
 	_ept = rpmsg_get_endpoint(rdev, name, RPMSG_ADDR_ANY, dest);
 
-	if (ns_msg->flags & RPMSG_NS_DESTROY) {
+	if (ns_msg->flags == RPMSG_NS_DESTROY) {
 		if (_ept)
 			_ept->dest_addr = RPMSG_ADDR_ANY;
 		metal_mutex_release(&rdev->lock);
 		if (_ept && _ept->ns_unbind_cb)
 			_ept->ns_unbind_cb(ept);
-	} else {
+	} else if (ns_msg->flags == RPMSG_NS_CREATE) {
 		if (!_ept) {
 			/*
 			 * send callback to application, that can
@@ -529,7 +529,13 @@ static int rpmsg_virtio_ns_callback(struct rpmsg_endpoint *ept, void *data,
 		} else {
 			_ept->dest_addr = dest;
 			metal_mutex_release(&rdev->lock);
+			if (rdev->support_bind)
+				rpmsg_send_ns_message(_ept, RPMSG_NS_BIND);
 		}
+	} else {
+		if (_ept)
+			_ept->dest_addr = dest;
+		metal_mutex_release(&rdev->lock);
 	}
 
 	return RPMSG_SUCCESS;
@@ -573,6 +579,7 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 	rdev->ops.send_offchannel_nocopy = rpmsg_virtio_send_offchannel_nocopy;
 	rdev->ops.send_offchannel_raw = rpmsg_virtio_send_offchannel_raw;
 	rdev->support_ns = !!(vdev->features & (1 << VIRTIO_RPMSG_F_NS));
+	rdev->support_bind = !!(vdev->features & (1 << VIRTIO_RPMSG_F_BIND));
 
 	if (vdev->features & (1 << VIRTIO_RPMSG_F_BUFSZ)) {
 		uint32_t size = 0;
@@ -680,7 +687,7 @@ int rpmsg_init_vdev(struct rpmsg_virtio_device *rvdev,
 	 * Create name service announcement endpoint if device supports name
 	 * service announcement feature.
 	 */
-	if (rdev->support_ns) {
+	if (rdev->support_ns || rdev->support_bind) {
 		rpmsg_init_ept(&rdev->ns_ept, "NS",
 			       RPMSG_NS_EPT_ADDR, RPMSG_NS_EPT_ADDR,
 			       rpmsg_virtio_ns_callback, NULL);
