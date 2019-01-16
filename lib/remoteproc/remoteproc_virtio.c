@@ -207,6 +207,7 @@ rproc_virtio_create_vdev(unsigned int role, unsigned int notifyid,
 		vrings_info[i].vq = vq;
 	}
 
+	rpvdev->notify = notify;
 	rpvdev->priv = priv;
 	vdev->vrings_info = vrings_info;
 	/* Assuming the shared memory has been mapped and registered if
@@ -315,6 +316,6 @@ void rproc_virtio_wait_remote_ready(struct virtio_device *vdev)
 		status = rproc_virtio_get_status(vdev);
 		if (status & VIRTIO_CONFIG_STATUS_DRIVER_OK)
 			return;
-		 metal_cpu_yield();
+		metal_cpu_yield();
 	}
 }
