@@ -441,7 +441,7 @@ static void rpmsg_virtio_rx_callback(struct virtqueue *vq)
 			status = ept->cb(ept, RPMSG_LOCATE_DATA(rp_hdr),
 					 B2C(rp_hdr->len), rp_hdr->src, ept->priv);
 
-			RPMSG_ASSERT(status == RPMSG_SUCCESS,
+			RPMSG_ASSERT(status >= RPMSG_SUCCESS,
 				     "unexpected callback status\n");
 		}
 
