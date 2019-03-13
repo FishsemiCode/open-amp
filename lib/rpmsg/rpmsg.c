@@ -115,7 +115,8 @@ int rpmsg_send_offchannel_raw(struct rpmsg_endpoint *ept, uint32_t src,
 {
 	struct rpmsg_device *rdev;
 
-	if (!ept || !ept->rdev || !data || dst == RPMSG_ADDR_ANY)
+	if (!ept || !ept->rdev || !data || src == 0 ||
+	    src == RPMSG_ADDR_ANY || dst == RPMSG_ADDR_ANY)
 		return RPMSG_ERR_PARAM;
 
 	rdev = ept->rdev;
@@ -191,7 +192,8 @@ int rpmsg_send_offchannel_nocopy(struct rpmsg_endpoint *ept, uint32_t src,
 {
 	struct rpmsg_device *rdev;
 
-	if (!ept || !ept->rdev || !data || dst == RPMSG_ADDR_ANY)
+	if (!ept || !ept->rdev || !data || src == 0 ||
+	    src == RPMSG_ADDR_ANY || dst == RPMSG_ADDR_ANY)
 		return RPMSG_ERR_PARAM;
 
 	rdev = ept->rdev;
