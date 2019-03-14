@@ -145,38 +145,44 @@ static void zynqmp_linux_r5_proc_remove(struct remoteproc *rproc)
         metal_device_close(prproc->shm_dev);
 }
 
-static void *
+static int
 zynqmp_linux_r5_proc_mmap(struct remoteproc *rproc, metal_phys_addr_t *pa,
-              metal_phys_addr_t *da, size_t size,
-              unsigned int attribute, struct metal_io_region **io)
+                          metal_phys_addr_t *da, void **va, size_t size,
+                          unsigned int attribute, struct metal_io_region **io)
 {
     struct remoteproc_priv *prproc;
-    metal_phys_addr_t lpa, lda;
     struct metal_io_region *tmpio;
 
     (void)attribute;
     (void)size;
     if (!rproc)
-        return NULL;
+        return -RPROC_EINVAL;
     prproc = rproc->priv;
-    lpa = *pa;
-    lda = *da;
 
-    if (lpa == METAL_BAD_PHYS && lda == METAL_BAD_PHYS)
-        return NULL;
-    if (lpa == METAL_BAD_PHYS)
-        lpa = lda;
-    if (lda == METAL_BAD_PHYS)
-        lda = lpa;
     tmpio = prproc->shm_io;
     if (!tmpio)
-        return NULL;
+        return -RPROC_EINVAL;
 
-    *pa = lpa;
-    *da = lda;
+    if (*pa != METAL_BAD_PHYS) {
+        *da = *pa;
+        *va = metal_io_phys_to_virt(tmpio, *pa);
+        if (!*va)
+            return -RPROC_EINVAL;
+    } else if (*da != METAL_BAD_PHYS) {
+        *pa = *da;
+        *va = metal_io_phys_to_virt(tmpio, *da);
+        if (!*va)
+            return -RPROC_EINVAL;
+    } else if (*va) {
+        *pa = *da = metal_io_virt_to_phys(tmpio, *va);
+        if (*pa == METAL_BAD_PHYS)
+            return -RPROC_EINVAL;
+    } else
+        return -RPROC_EINVAL;
+
     if (io)
         *io = tmpio;
-    return metal_io_phys_to_virt(tmpio, lpa);
+    return 0;
 }
 
 static int zynqmp_linux_r5_proc_notify(struct remoteproc *rproc, uint32_t id)

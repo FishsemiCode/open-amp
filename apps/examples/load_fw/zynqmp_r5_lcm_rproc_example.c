@@ -137,86 +137,79 @@ void r5_rproc_remove(struct remoteproc *rproc)
 	}
 }
 
-void *r5_rproc_mmap(struct remoteproc *rproc,
-		    metal_phys_addr_t *pa, metal_phys_addr_t *da,
-		    size_t size, unsigned int attribute,
-		    struct metal_io_region **io)
+int r5_rproc_mmap(struct remoteproc *rproc,
+		  metal_phys_addr_t *pa, metal_phys_addr_t *da,
+		  void **va, size_t size, unsigned int attribute,
+		  struct metal_io_region **io)
 {
 	struct remoteproc_mem *mem;
+	struct metal_io_region *tmpio;
 	struct r5_rproc_priv *priv;
-	metal_phys_addr_t lpa, lda;
 
 	priv = rproc->priv;
 
-	if (!da || !pa)
-		return NULL;
 	LPRINTF("%s: pa=0x%x, da=0x%x, size=0x%x, atrribute=0x%x\n\r",
 		__func__, *pa, *da, size, attribute);
-	lda = *da;
-	lpa = *pa;
 	if (!attribute)
 		attribute = NORM_SHARED_NCACHE | PRIV_RW_USER_RW;
-	if (lda <= 0x40000) {
+	if (*da <= 0x40000) {
 		metal_phys_addr_t lda_end;
 
-		lda_end = lda + size;
+		lda_end = *da + size;
 		if (priv->cpu_id == NODE_RPU_0 || priv->cpu_id == NODE_RPU) {
-			lpa = 0xFFE00000 + lda;
-			if (lda < 0x10000)
+			*pa = 0xFFE00000 + *da;
+			if (*da < 0x10000)
 				XPm_RequestNode(NODE_TCM_0_A,
 						PM_CAP_ACCESS, 0,
 						REQUEST_ACK_BLOCKING);
-			if (lda <= 0x20000 && lda_end >= 0x10000)
+			if (*da <= 0x20000 && lda_end >= 0x10000)
 				XPm_RequestNode(NODE_TCM_1_A,
 						PM_CAP_ACCESS, 0,
 						REQUEST_ACK_BLOCKING);
-			if (lda <= 0x30000 && lda_end >= 0x20000)
+			if (*da <= 0x30000 && lda_end >= 0x20000)
 				XPm_RequestNode(NODE_TCM_0_B,
 						PM_CAP_ACCESS, 0,
 						REQUEST_ACK_BLOCKING);
-			if (lda <= 0x40000 && lda_end >= 0x30000)
+			if (*da <= 0x40000 && lda_end >= 0x30000)
 				XPm_RequestNode(NODE_TCM_1_B,
 						PM_CAP_ACCESS, 0,
 						REQUEST_ACK_BLOCKING);
 		} else if (priv->cpu_id == NODE_RPU_1) {
-			lpa = 0xFFE90000 + lda;
-			if (lda < 0x10000)
+			*pa = 0xFFE90000 + *da;
+			if (*da < 0x10000)
 				XPm_RequestNode(NODE_TCM_1_A,
 						PM_CAP_ACCESS, 0,
 						REQUEST_ACK_BLOCKING);
-			if (lda <= 0x30000 && lda_end >= 0x20000)
+			if (*da <= 0x30000 && lda_end >= 0x20000)
 				XPm_RequestNode(NODE_TCM_1_B,
 						PM_CAP_ACCESS, 0,
 						REQUEST_ACK_BLOCKING);
 		} else {
 			LPERROR("mmap failed: invalid cpu node: %d\n",
 				priv->cpu_id);
-			return NULL;
+			return -RPROC_EINVAL;
 		}
 	}
-	if (lpa == METAL_BAD_PHYS)
-		lpa = lda;
-	if (lpa == METAL_BAD_PHYS)
-		return NULL;
+	if (*pa == METAL_BAD_PHYS)
+		*pa = *da;
+	if (*pa == METAL_BAD_PHYS)
+		return -RPROC_EINVAL;
 	mem = metal_allocate_memory(sizeof(*mem));
 	if (!mem)
-		return NULL;
-	mem->pa = lpa;
-	mem->da = lda;
-
-	*io = metal_allocate_memory(sizeof(struct metal_io_region));
-	if (!*io) {
+		return -RPROC_ENOMEM;
+	tmpio = metal_allocate_memory(sizeof(struct metal_io_region));
+	if (!tmpio) {
 		metal_free_memory(mem);
-		return NULL;
+		return -RPROC_ENOMEM;
 	}
-	metal_io_init(*io, (void *)mem->pa, &mem->pa, size,
+	remoteproc_init_mem(mem, NULL, *pa, *da, size, tmpio);
+	metal_io_init(tmpio, (void *)mem->pa, &mem->pa, size,
 		      sizeof(metal_phys_addr_t)<<3, attribute, NULL);
-	mem->io = *io;
-	metal_list_add_tail(&rproc->mems, &mem->node);
-	*pa = lpa;
-	*da = lda;
-	mem->size = size;
-	return metal_io_phys_to_virt(*io, mem->pa);
+	remoteproc_add_mem(rproc, mem);
+	*va = metal_io_phys_to_virt(tmpio, mem->pa);
+	if (io)
+		*io = tmpio;
+	return 0;
 }
 
 int r5_rproc_start(struct remoteproc *rproc)

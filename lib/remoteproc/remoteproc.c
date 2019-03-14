@@ -288,13 +288,14 @@ struct metal_io_region *
 remoteproc_get_io_with_pa(struct remoteproc *rproc,
 			  metal_phys_addr_t pa)
 {
-	struct remoteproc_mem *mem;
+	struct metal_io_region *io;
+	int ret;
 
-	mem = remoteproc_get_mem(rproc, NULL, pa, METAL_BAD_PHYS, NULL, 0);
-	if (mem)
-		return mem->io;
-	else
+	ret = remoteproc_mmap(rproc, &pa, NULL, NULL, 0, 0, &io);
+	if (ret < 0)
 		return NULL;
+
+	return io;
 }
 
 struct metal_io_region *
@@ -302,48 +303,44 @@ remoteproc_get_io_with_da(struct remoteproc *rproc,
 			  metal_phys_addr_t da,
 			  unsigned long *offset)
 {
-	struct remoteproc_mem *mem;
+	struct metal_io_region *io;
+	metal_phys_addr_t pa = METAL_BAD_PHYS;
+	int ret;
 
-	mem = remoteproc_get_mem(rproc, NULL, METAL_BAD_PHYS, da, NULL, 0);
-	if (mem) {
-		struct metal_io_region *io;
-		metal_phys_addr_t pa;
-
-		io = mem->io;
-		pa = remoteproc_datopa(mem, da);
-		*offset = metal_io_phys_to_offset(io, pa);
-		return io;
-	} else {
+	ret = remoteproc_mmap(rproc, &pa, &da, NULL, 0, 0, &io);
+	if (ret < 0)
 		return NULL;
-	}
+
+	*offset = metal_io_phys_to_offset(io, pa);
+	return io;
 }
 
 struct metal_io_region *
 remoteproc_get_io_with_va(struct remoteproc *rproc, void *va)
 {
-	struct remoteproc_mem *mem;
+	struct metal_io_region *io;
+	int ret;
 
-	mem = remoteproc_get_mem(rproc, NULL, METAL_BAD_PHYS, METAL_BAD_PHYS,
-				 va, 0);
-	if (mem)
-		return mem->io;
-	else
+	ret = remoteproc_mmap(rproc, NULL, NULL, &va, 0, 0, &io);
+	if (ret < 0)
 		return NULL;
+
+	return io;
 }
 
-void *remoteproc_mmap(struct remoteproc *rproc,
-		      metal_phys_addr_t *pa, metal_phys_addr_t *da,
-		      size_t size, unsigned int attribute,
-		      struct metal_io_region **io)
+int remoteproc_mmap(struct remoteproc *rproc,
+		    metal_phys_addr_t *pa, metal_phys_addr_t *da,
+		    void **va, size_t size, unsigned int attribute,
+		    struct metal_io_region **io)
 {
-	void *va = NULL;
+	void *lva = NULL;
 	metal_phys_addr_t lpa, lda;
 	struct remoteproc_mem *mem;
 
 	if (!rproc)
-		return NULL;
-	else if (!pa && !da)
-		return NULL;
+		return -RPROC_EINVAL;
+	else if (!pa && !da && !va)
+		return -RPROC_EINVAL;
 	if (pa)
 		lpa = *pa;
 	else
@@ -352,24 +349,40 @@ void *remoteproc_mmap(struct remoteproc *rproc,
 		lda =  *da;
 	else
 		lda = METAL_BAD_PHYS;
-	mem = remoteproc_get_mem(rproc, NULL, lpa, lda, NULL, size);
+	if (va)
+		lva = *va;
+	mem = remoteproc_get_mem(rproc, NULL, lpa, lda, lva, size);
 	if (mem) {
-		if (lpa != METAL_BAD_PHYS)
+		if (lpa != METAL_BAD_PHYS) {
 			lda = remoteproc_patoda(mem, lpa);
-		else if (lda != METAL_BAD_PHYS)
+			lva = metal_io_phys_to_virt(mem->io, lpa);
+		} else if (lda != METAL_BAD_PHYS) {
 			lpa = remoteproc_datopa(mem, lda);
+			lva = metal_io_phys_to_virt(mem->io, lpa);
+		} else if (lva != NULL) {
+			lpa = metal_io_virt_to_phys(mem->io, lva);
+			lda = remoteproc_patoda(mem, lpa);
+		}
 		if (io)
 			*io = mem->io;
-		va = metal_io_phys_to_virt(mem->io, lpa);
-	} else if (rproc->ops->mmap) {
-		va = rproc->ops->mmap(rproc, &lpa, &lda, size, attribute, io);
+	} else {
+		int ret = -RPROC_EINVAL;
+
+		if (rproc->ops->mmap)
+			ret = rproc->ops->mmap(rproc, &lpa, &lda, &lva, size, attribute, io);
+
+		if (ret < 0)
+			return ret;
 	}
 
 	if (pa)
 		*pa  = lpa;
 	if (da)
 		*da = lda;
-	return va;
+	if (va)
+		*va = lva;
+
+	return 0;
 }
 
 int remoteproc_load(struct remoteproc *rproc, const char *path,
@@ -523,7 +536,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 			img_data = NULL;
 			/* get the I/O region from remoteproc */
 			pa = METAL_BAD_PHYS;
-			remoteproc_mmap(rproc, &pa, &da, nmemsize, 0, &io);
+			remoteproc_mmap(rproc, &pa, &da, NULL, nmemsize, 0, &io);
 			if (pa == METAL_BAD_PHYS || io == NULL) {
 				metal_log(METAL_LOG_ERROR,
 					  "load failed, no mapping for 0x%llx.\n",
@@ -593,8 +606,9 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 
 		metal_log(METAL_LOG_DEBUG,
 			  "%s, update resource table\n", __func__);
-		rsc_table = remoteproc_mmap(rproc, NULL, &rsc_da,
-					    rsc_size, 0, &io);
+		rsc_table = NULL;
+		remoteproc_mmap(rproc, NULL, &rsc_da,
+				&rsc_table, rsc_size, 0, &io);
 		if (rsc_table) {
 			size_t rsc_io_offset;
 
@@ -754,7 +768,7 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 		if (da != RPROC_LOAD_ANYADDR) {
 			/* get the I/O region from remoteproc */
 			*pa = METAL_BAD_PHYS;
-			remoteproc_mmap(rproc, pa, &da, *nmlen, 0, io);
+			remoteproc_mmap(rproc, pa, &da, NULL, *nmlen, 0, io);
 			if (*pa == METAL_BAD_PHYS || io == NULL) {
 				metal_log(METAL_LOG_ERROR,
 					  "load failed, no mapping for 0x%llx.\n",
@@ -779,8 +793,8 @@ int remoteproc_load_noblock(struct remoteproc *rproc,
 				ret = -RPROC_ENOMEM;
 				goto error1;
 			}
-			rsc_table = remoteproc_mmap(rproc, NULL, &rsc_da,
-						    rsc_size, 0, io);
+			remoteproc_mmap(rproc, NULL, &rsc_da,
+					&rsc_table, rsc_size, 0, io);
 			if (*io == NULL) {
 				metal_log(METAL_LOG_ERROR,
 					  "load failed: failed to mmap rsc\n");
@@ -918,7 +932,7 @@ remoteproc_create_virtio(struct remoteproc *rproc,
 		metal_phys_addr_t da;
 		unsigned int num_descs, align;
 		struct metal_io_region *io;
-		void *va;
+		void *va = NULL;
 		size_t size;
 		int ret;
 
@@ -928,7 +942,7 @@ remoteproc_create_virtio(struct remoteproc *rproc,
 		num_descs = vring_rsc->num;
 		align = B2C(vring_rsc->align);
 		size = vring_size(num_descs, align);
-		va = remoteproc_mmap(rproc, NULL, &da, size, 0, &io);
+		remoteproc_mmap(rproc, NULL, &da, &va, size, 0, &io);
 		if (!va)
 			goto err1;
 		ret = rproc_virtio_init_vring(vdev, i, notifyid,

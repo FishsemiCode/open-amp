@@ -94,45 +94,43 @@ static void zynq_a9_proc_remove(struct remoteproc *rproc)
 		metal_device_close(dev);
 }
 
-static void *
+static int
 zynq_a9_proc_mmap(struct remoteproc *rproc, metal_phys_addr_t *pa,
-			metal_phys_addr_t *da, size_t size,
-			unsigned int attribute, struct metal_io_region **io)
+		  metal_phys_addr_t *da, void **va, size_t size,
+		  unsigned int attribute, struct metal_io_region **io)
 {
 	struct remoteproc_mem *mem;
-	metal_phys_addr_t lpa, lda;
 	struct metal_io_region *tmpio;
 
-	lpa = *pa;
-	lda = *da;
-
-	if (lpa == METAL_BAD_PHYS && lda == METAL_BAD_PHYS)
-		return NULL;
-	if (lpa == METAL_BAD_PHYS)
-		lpa = lda;
-	if (lda == METAL_BAD_PHYS)
-		lda = lpa;
+	/* va is the same as pa/da in this platform */
+	if (*pa != METAL_BAD_PHYS) {
+		*da = *pa;
+		*va = (void *)*pa;
+	} else if (*da != METAL_BAD_PHYS) {
+		*pa = *da;
+		*va = (void *)*da;
+	} else if (*va)
+		*pa = *da = (metal_phys_addr_t)*va;
+	else
+		return -RPROC_EINVAL;
 
 	if (!attribute)
 		attribute = NORM_NONCACHE | STRONG_ORDERED;
 	mem = metal_allocate_memory(sizeof(*mem));
 	if (!mem)
-		return NULL;
+		return -RPROC_ENOMEM;
 	tmpio = metal_allocate_memory(sizeof(*tmpio));
 	if (!tmpio) {
 		metal_free_memory(mem);
-		return NULL;
+		return -RPROC_ENOMEM;
 	}
-	remoteproc_init_mem(mem, NULL, lpa, lda, size, tmpio);
-	/* va is the same as pa in this platform */
-	metal_io_init(tmpio, (void *)lpa, &mem->pa, size,
+	remoteproc_init_mem(mem, NULL, *pa, *da, size, tmpio);
+	metal_io_init(tmpio, *va, &mem->pa, size,
 		      sizeof(metal_phys_addr_t)<<3, attribute, NULL);
 	remoteproc_add_mem(rproc, mem);
-	*pa = lpa;
-	*da = lda;
 	if (io)
 		*io = tmpio;
-	return metal_io_phys_to_virt(tmpio, mem->pa);
+	return 0;
 }
 
 static int zynq_a9_proc_notify(struct remoteproc *rproc, uint32_t id)

@@ -111,7 +111,7 @@ int handle_carve_out_rsc(struct remoteproc *rproc, void *rsc)
 	da = carve_rsc->da;
 	size = B2C(carve_rsc->len);
 	attribute = carve_rsc->flags;
-	if (remoteproc_mmap(rproc, &pa, &da, size, attribute, NULL))
+	if (remoteproc_mmap(rproc, &pa, &da, NULL, size, attribute, NULL))
 		return 0;
 	else
 		return -RPROC_EINVAL;

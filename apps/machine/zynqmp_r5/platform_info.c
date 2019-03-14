@@ -112,16 +112,16 @@ platform_create_proc(int proc_index, int rsc_index)
 	 */
 	/* mmap resource table */
 	pa = (metal_phys_addr_t)rsc_table;
-	(void *)remoteproc_mmap(&rproc_inst, &pa,
-				NULL, rsc_size,
-				NORM_NSHARED_NCACHE|PRIV_RW_USER_RW,
-				&rproc_inst.rsc_io);
+	remoteproc_mmap(&rproc_inst, &pa,
+			NULL, NULL, rsc_size,
+			NORM_NSHARED_NCACHE|PRIV_RW_USER_RW,
+			&rproc_inst.rsc_io);
 	/* mmap shared memory */
 	pa = SHARED_MEM_PA;
-	(void *)remoteproc_mmap(&rproc_inst, &pa,
-				NULL, SHARED_MEM_SIZE,
-				NORM_NSHARED_NCACHE|PRIV_RW_USER_RW,
-				NULL);
+	remoteproc_mmap(&rproc_inst, &pa,
+			NULL, NULL, SHARED_MEM_SIZE,
+			NORM_NSHARED_NCACHE|PRIV_RW_USER_RW,
+			NULL);
 
 	/* parse resource table to remoteproc */
 	ret = remoteproc_set_rsc_table(&rproc_inst, rsc_table, rsc_size);

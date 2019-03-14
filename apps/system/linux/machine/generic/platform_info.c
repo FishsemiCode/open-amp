@@ -297,39 +297,43 @@ static void linux_proc_remove(struct remoteproc *rproc)
 	}
 }
 
-static void *
+static int
 linux_proc_mmap(struct remoteproc *rproc, metal_phys_addr_t *pa,
-		metal_phys_addr_t *da, size_t size,
+		metal_phys_addr_t *da, void **va, size_t size,
 		unsigned int attribute, struct metal_io_region **io)
 {
 	struct remoteproc_mem *mem;
 	struct remoteproc_priv *prproc;
-	metal_phys_addr_t lpa, lda;
-	void *va;
 
 	(void)attribute;
 	(void)size;
-	lpa = *pa;
-	lda = *da;
-
-	if (lpa == METAL_BAD_PHYS && lda == METAL_BAD_PHYS)
-		return NULL;
-	if (lpa == METAL_BAD_PHYS)
-		lpa = lda;
-	if (lda == METAL_BAD_PHYS)
-		lda = lpa;
 
 	if (!rproc)
-		return NULL;
+		return -RPROC_EINVAL;
 	prproc = rproc->priv;
 	mem = &prproc->shm;
-	va = metal_io_phys_to_virt(mem->io, lpa);
-	if (va) {
-		if (io)
-			*io = mem->io;
-		metal_list_add_tail(&rproc->mems, &mem->node);
-	}
-	return va;
+
+	if (*pa != METAL_BAD_PHYS) {
+		*da = *pa;
+		*va = metal_io_phys_to_virt(mem->io, *pa);
+		if (!*va)
+			return -RPROC_EINVAL;
+	} else if (*da != METAL_BAD_PHYS) {
+		*pa = *da;
+		*va = metal_io_phys_to_virt(mem->io, *da);
+		if (!*va)
+			return -RPROC_EINVAL;
+	} else if (*va) {
+		*pa = *da = metal_io_virt_to_phys(mem->io, *va);
+		if (*pa == METAL_BAD_PHYS)
+			return -RPROC_EINVAL;
+	} else
+		return -RPROC_EINVAL;
+
+	remoteproc_add_mem(rproc, mem);
+	if (io)
+		*io = mem->io;
+	return 0;
 }
 
 static int linux_proc_notify(struct remoteproc *rproc, uint32_t id)
@@ -388,7 +392,7 @@ static struct remoteproc *
 platform_create_proc(int proc_index, int rsc_index)
 {
 	struct remoteproc_priv *prproc;
-	void *rsc_table, *rsc_table_shm;
+	void *rsc_table, *rsc_table_shm = NULL;
 	int rsc_size;
 	int ret;
 	metal_phys_addr_t pa;
@@ -417,8 +421,8 @@ platform_create_proc(int proc_index, int rsc_index)
 
 	/* Mmap resource table */
 	pa = RSC_MEM_PA;
-	rsc_table_shm = remoteproc_mmap(&rproc_inst, &pa, NULL, rsc_size,
-					0, &rproc_inst.rsc_io);
+	remoteproc_mmap(&rproc_inst, &pa, NULL, &rsc_table_shm, rsc_size,
+			0, &rproc_inst.rsc_io);
 
 	/* parse resource table to remoteproc */
 	ret = remoteproc_set_rsc_table(&rproc_inst, rsc_table_shm, rsc_size);

@@ -79,7 +79,7 @@ static struct rpmsg_virtio_shm_pool shpool;
 static struct remoteproc *
 platform_create_proc(int proc_index, int rsc_index)
 {
-	void *rsc_table;
+	void *rsc_table = NULL;
 	int rsc_size;
 	int ret;
 	metal_phys_addr_t pa;
@@ -97,8 +97,8 @@ platform_create_proc(int proc_index, int rsc_index)
 	/* Mmap resource table */
 	pa = RSC_MEM_PA;
 	printf("Calling mmap resource table.\n");
-	rsc_table = remoteproc_mmap(&rproc_inst, &pa, NULL, rsc_size,
-				    0, NULL);
+	remoteproc_mmap(&rproc_inst, &pa, NULL, &rsc_table, rsc_size,
+			0, NULL);
 	if (!rsc_table) {
 		fprintf(stderr, "ERROR: Failed to mmap resource table.\n");
 		return NULL;
