@@ -37,6 +37,7 @@ ifeq ($(CONFIG_OPENAMP),y)
 
 OPENAMP_HDRS += $(wildcard $(SRCDIR)/open-amp/lib/include/openamp/*.h)
 
+CSRCS += open-amp/lib/remoteproc/ceva_loader.c
 CSRCS += open-amp/lib/remoteproc/elf_loader.c
 CSRCS += open-amp/lib/remoteproc/remoteproc.c
 CSRCS += open-amp/lib/remoteproc/remoteproc_virtio.c

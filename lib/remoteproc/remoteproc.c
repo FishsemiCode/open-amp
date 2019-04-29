@@ -10,6 +10,7 @@
 #include <metal/log.h>
 #include <metal/utilities.h>
 #include <openamp/elf_loader.h>
+#include <openamp/ceva_loader.h>
 #include <openamp/remoteproc.h>
 #include <openamp/remoteproc_loader.h>
 #include <openamp/remoteproc_virtio.h>
@@ -25,6 +26,8 @@ remoteproc_check_fw_format(const void *img_data, size_t img_len)
 		return NULL;
 	else if (elf_identify(img_data, img_len) == 0)
 		return &elf_ops;
+	else if (ceva_identify(img_data, img_len) == 0)
+		return &ceva_ops;
 	else
 		return NULL;
 }
