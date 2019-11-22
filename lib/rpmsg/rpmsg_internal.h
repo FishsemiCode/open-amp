@@ -21,9 +21,7 @@ extern "C" {
 		if (!(_exp)) { \
 			metal_log(METAL_LOG_EMERGENCY, \
 				  "FATAL: %s - "_msg, __func__); \
-			while (1) { \
-				; \
-			} \
+			assert(0); \
 		} \
 	} while (0)
 #else

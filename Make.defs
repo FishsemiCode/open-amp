@@ -46,6 +46,8 @@ CSRCS += open-amp/lib/rpmsg/rpmsg_virtio.c
 CSRCS += open-amp/lib/virtio/virtio.c
 CSRCS += open-amp/lib/virtio/virtqueue.c
 
+CFLAGS += -DRPMSG_DEBUG
+
 .openamp_headers: $(OPENAMP_HDRS)
 	$(shell mkdir -p $(OUTDIR)$(DELIM)include$(DELIM)openamp$(DELIM))
 	$(foreach header,$^,$(shell cp -rf $(header) $(OUTDIR)$(DELIM)include$(DELIM)openamp$(DELIM)))
