@@ -24,11 +24,11 @@ remoteproc_check_fw_format(const void *img_data, size_t img_len)
 {
 	if (img_len <= 0)
 		return NULL;
-#ifdef OPENAMP_ELF_LOADER
+#ifdef CONFIG_OPENAMP_ELF_LOADER
 	else if (elf_identify(img_data, img_len) == 0)
 		return &elf_ops;
 #endif
-#ifdef OPENAMP_CEVA_LOADER
+#ifdef CONFIG_OPENAMP_CEVA_LOADER
 	else if (ceva_identify(img_data, img_len) == 0)
 		return &ceva_ops;
 #endif
