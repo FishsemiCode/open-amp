@@ -538,7 +538,7 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 			  "load data: da 0x%lx, offset 0x%lx, len = 0x%lx, memsize = 0x%lx, state 0x%x\n",
 			  da, noffset, nlen, nmemsize, ret);
 		last_load_state = ret;
-		if (da != RPROC_LOAD_ANYADDR) {
+		if (da != RPROC_LOAD_ANYADDR && nlen != 0) {
 			/* Data is supposed to be loaded to target memory */
 			img_data = NULL;
 			/* get the I/O region from remoteproc */
@@ -591,6 +591,11 @@ int remoteproc_load(struct remoteproc *rproc, const char *path,
 			len = nlen;
 		} else {
 			/* (last_load_state & RPROC_LOADER_LOAD_COMPLETE) != 0 */
+			if (da != RPROC_LOAD_ANYADDR) {
+				offset = noffset;
+				len = nlen;
+				continue;
+			}
 			break;
 		}
 	}
